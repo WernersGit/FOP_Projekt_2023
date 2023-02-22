@@ -70,7 +70,15 @@ public final class Location implements Comparable<Location> {
 
     @Override
     public int compareTo(@NotNull Location o) {
-        return crash(); // TODO: H1.1 - remove if implemented
+        if(this.x == o.x && this.y == o.y){
+            return 0;
+        }
+        else if(this.x < o.x || (this.x == o.x && this.y < o.y)){
+            return -1;
+        }
+        else{
+            return 1;
+        }
     }
 
     @Override
