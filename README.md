@@ -4,7 +4,7 @@ FOP Projekt
 ## Hier der Link zum Kanban-Board: https://github.com/users/WernersGit/projects/1/views/1
 
 
-## Stand der Aufgaben: 04.02.2023
+## Stand der Aufgaben: 22.02.2023
 
 
 ## Verbindliche Anforderungen (für das ganze Projekt):
