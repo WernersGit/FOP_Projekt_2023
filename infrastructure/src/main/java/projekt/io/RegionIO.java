@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 public class RegionIO {
 
     private static final Map<String, Supplier<? extends DistanceCalculator>> DESERIALIZED_DISTANCE_CALCULATOR = Map.of(
-        CachedPathCalculator.class.getSimpleName(), ChessboardDistanceCalculator::new,
+        ChessboardDistanceCalculator.class.getSimpleName(), ChessboardDistanceCalculator::new,
         EuclideanDistanceCalculator.class.getSimpleName(), EuclideanDistanceCalculator::new,
         ManhattanDistanceCalculator.class.getSimpleName(), ManhattanDistanceCalculator::new
     );

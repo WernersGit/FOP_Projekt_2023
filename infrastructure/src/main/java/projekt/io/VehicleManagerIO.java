@@ -66,10 +66,10 @@ public class VehicleManagerIO {
     }
 
     private static String serializeVehicle(Vehicle vehicle) {
-        return "%d,%d,%f".formatted(
+        return "%d,%d,%s".formatted(
             vehicle.getStartingNode().getComponent().getLocation().getX(),
             vehicle.getStartingNode().getComponent().getLocation().getY(),
-            vehicle.getCapacity());
+            Double.toString(vehicle.getCapacity()));
 
     }
 

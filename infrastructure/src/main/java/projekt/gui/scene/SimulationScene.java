@@ -45,7 +45,7 @@ public class SimulationScene extends Scene implements SimulationListener, Contro
 
         mapPane = new MapPane(region.getNodes(), region.getEdges(), vehicleManager.getVehicles());
 
-        controlsPane = new ControlsPane(simulation, problem, run, simulationRuns, problem.simulationLength());
+        controlsPane = new ControlsPane(simulation, problem, run, simulationRuns, problem.simulationLength(), mapPane);
         TitledPane titledControlsPane = new TitledPane("Controls", controlsPane);
         titledControlsPane.setCollapsible(false);
 

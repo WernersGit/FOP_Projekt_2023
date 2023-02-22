@@ -70,14 +70,16 @@ public class OrderGeneratorFactoryIO {
             writer.write("O %s".formatted(factory.getClass().getName()));
 
             if (factory instanceof FridayOrderGenerator.Factory fridayFactory) {
-                writer.write(" %d %d %f %f %d %d\n".formatted(
+                writer.write(" %d %d %s %s %d %d\n".formatted(
                     fridayFactory.orderCount,
                     fridayFactory.deliveryInterval,
-                    fridayFactory.maxWeight,
-                    fridayFactory.variance,
+                    Double.toString(fridayFactory.maxWeight),
+                    Double.toString(fridayFactory.variance),
                     fridayFactory.lastTick,
                     fridayFactory.seed)
                 );
+            } else {
+                writer.write("\n");
             }
 
             writer.write("END ORDER GENERATOR\n");

@@ -84,9 +84,9 @@ public class RaterFactoryMapIO {
                         inTimeFactory.maxTicksOff
                     ));
                 } else if (entry.getValue() instanceof AmountDeliveredRater.Factory amountDeliveredFactory) {
-                    writer.write(" %f\n".formatted(amountDeliveredFactory.factor));
+                    writer.write(" %s\n".formatted(Double.toString(amountDeliveredFactory.factor)));
                 } else if (entry.getValue() instanceof TravelDistanceRater.Factory travelDistanceFactory) {
-                    writer.write(" %f\n".formatted(travelDistanceFactory.factor));
+                    writer.write(" %s\n".formatted(Double.toString(travelDistanceFactory.factor)));
                 }
             }
             writer.write("END RATER\n");
