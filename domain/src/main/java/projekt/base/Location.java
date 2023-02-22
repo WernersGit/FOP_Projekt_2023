@@ -83,16 +83,36 @@ public final class Location implements Comparable<Location> {
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H1.2 - remove if implemented
+        int returnValue;
+        int prime = 31;
+
+        returnValue = prime + x;
+        returnValue = prime * returnValue + y;
+
+        return returnValue;
     }
 
     @Override
     public boolean equals(Object o) {
-        return crash(); // TODO: H1.3 - remove if implemented
+        if(o != null){
+            if(o.getClass() == Location.class) {
+                if (this.x == ((Location) o).x && this.y == ((Location) o).y) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            else{
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
     @Override
     public String toString() {
-        return crash(); // TODO: H1.4 - remove if implemented
+        return "(" + this.x + "," + this.y + ")";
     }
 }
