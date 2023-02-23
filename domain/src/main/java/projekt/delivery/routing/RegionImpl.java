@@ -6,6 +6,7 @@ import projekt.base.EuclideanDistanceCalculator;
 import projekt.base.Location;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
@@ -32,22 +33,34 @@ class RegionImpl implements Region {
 
     @Override
     public @Nullable Node getNode(Location location) {
-        return crash(); // TODO: H2.1 - remove if implemented
+        return nodes.get(location);
     }
 
     @Override
     public @Nullable Edge getEdge(Location locationA, Location locationB) {
-        return crash(); // TODO: H2.3 - remove if implemented
+        if(locationA == null || locationB == null){
+            return null;
+        }
+        else {
+            if(edges.containsKey(locationA) && edges.get(locationA).containsKey(locationB)){ //erst A, dann B
+                return edges.get(locationA).get(locationB);
+            }
+
+            if(edges.containsKey(locationB) && edges.get(locationB).containsKey(locationA)){ //erst B, dann A
+                return edges.get(locationB).get(locationA);
+            }
+        }
+        return null; //alle anderen Fälle
     }
 
     @Override
     public Collection<Node> getNodes() {
-        return crash(); // TODO: H2.5 - remove if implemented
+        return Collections.unmodifiableCollection(nodes.values());
     }
 
     @Override
     public Collection<Edge> getEdges() {
-        return crash(); // TODO: H2.5 - remove if implemented
+        return edges.values().stream().flatMap(m -> m.values().stream()).collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableCollection));
     }
 
     @Override
@@ -60,7 +73,12 @@ class RegionImpl implements Region {
      * @param node the {@link NodeImpl} to add.
      */
     void putNode(NodeImpl node) {
-        crash(); // TODO: H2.2 - remove if implemented
+        if (this.equals(node.getRegion())){
+            nodes.put(node.getLocation(), node);
+        }
+        else{
+            throw new IllegalArgumentException("Node " + node + " has incorrect region");
+        }
     }
 
     /**
@@ -68,7 +86,24 @@ class RegionImpl implements Region {
      * @param edge the {@link EdgeImpl} to add.
      */
     void putEdge(EdgeImpl edge) {
-        crash(); // TODO: H2.4 - remove if implemented
+        if (this.equals(edge.getRegion())){
+            if(edge.getNodeA() == null || edge.getNodeB() == null){
+                String location;
+                if(edge.getNodeA() == null){
+                    location = edge.getLocationA().toString();
+                }
+                else{
+                    location = edge.getLocationB().toString();
+                }
+                throw new IllegalArgumentException("Node{A,B} " + location + " is not part of the region");
+            }
+
+            edges.get(edge.getLocationA()).put(edge.getLocationB(), edge);
+            allEdges.add(edge);
+        }
+        else{
+            throw new IllegalArgumentException("Edge " + edge + " has incorrect region");
+        }
     }
 
     @Override
