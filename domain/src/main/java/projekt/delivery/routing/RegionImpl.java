@@ -112,12 +112,7 @@ class RegionImpl implements Region {
             if(this == o){
                 return true;
             }
-            else if(Objects.equals(this.nodes, ((RegionImpl) o).nodes) && Objects.equals(this.edges, ((RegionImpl) o).edges)){
-                return true;
-            }
-            else{
-                return false;
-            }
+            else return Objects.equals(this.nodes, ((RegionImpl) o).nodes) && Objects.equals(this.edges, ((RegionImpl) o).edges);
         }
         else{
             return false;
