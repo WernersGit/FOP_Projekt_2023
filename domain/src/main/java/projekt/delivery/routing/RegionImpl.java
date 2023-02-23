@@ -108,11 +108,24 @@ class RegionImpl implements Region {
 
     @Override
     public boolean equals(Object o) {
-        return crash(); // TODO: H2.6 - remove if implemented
+        if(o instanceof RegionImpl){
+            if(this == o){
+                return true;
+            }
+            else if(Objects.equals(this.nodes, ((RegionImpl) o).nodes) && Objects.equals(this.edges, ((RegionImpl) o).edges)){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        else{
+            return false;
+        }
     }
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H2.7 - remove if implemented
+        return Objects.hash(this.edges, this.nodes);
     }
 }
