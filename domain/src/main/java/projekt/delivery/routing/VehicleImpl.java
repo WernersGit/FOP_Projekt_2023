@@ -124,12 +124,17 @@ class VehicleImpl implements Vehicle {
         }
     }
 
-    void loadOrder(ConfirmedOrder order) {
-        crash(); // TODO: H5.2 - remove if implemented
+    void loadOrder(ConfirmedOrder order) throws VehicleOverloadedException {
+
+        double totalWeight = this.getCurrentWeight() + order.getWeight();
+        if (totalWeight > this.getCapacity()) throw new VehicleOverloadedException(this, totalWeight);
+
+        this.orders.add(order);
     }
 
     void unloadOrder(ConfirmedOrder order) {
-        crash(); // TODO: H5.2 - remove if implemented
+
+    if (this.orders.contains(order)) orders.remove(order);
     }
 
     @Override
