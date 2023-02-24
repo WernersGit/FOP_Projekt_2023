@@ -51,12 +51,27 @@ class VehicleImpl implements Vehicle {
 
     @Override
     public void moveDirect(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
-        crash(); // TODO: H5.4 - remove if implemented
+
+        moveQueue.clear();
+        if (this.getOccupied().getComponent().equals(node))
+            throw new IllegalArgumentException();
+        else moveQueued(node, arrivalAction);
     }
 
     @Override
-    public void moveQueued(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
-        crash(); // TODO: H5.3 - remove if implemented
+    public void moveQueued(Region.Node node, Consumer<? super Vehicle> arrivalAction) { //H5.2
+
+        if (this.vehicleManager.occupiedNodes.containsValue(node) && this.moveQueue.size() == 1)
+            throw new IllegalArgumentException();
+
+        ArrayDeque<Region.Node> nodeDeque = new ArrayDeque<>();
+        nodeDeque.addFirst(this.moveQueue.peekLast().nodes().getLast());
+        nodeDeque.addLast(node);
+        PathImpl path = new PathImpl(nodeDeque, arrivalAction);
+
+
+        this.moveQueue.addLast(path);
+
     }
 
     @Override
@@ -152,7 +167,7 @@ class VehicleImpl implements Vehicle {
             + ')';
     }
 
-    private record PathImpl(Deque<Region.Node> nodes, Consumer<? super Vehicle> arrivalAction) implements Path {
+    private record   PathImpl(Deque<Region.Node> nodes, Consumer<? super Vehicle> arrivalAction) implements Path {
 
     }
 }
