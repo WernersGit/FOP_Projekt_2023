@@ -95,7 +95,7 @@ public final class Location implements Comparable<Location> {
     @Override
     public boolean equals(Object o) {
         if(o != null){
-            if(o.getClass() == Location.class) {
+            if(o instanceof Location) {
                 if (this.x == ((Location) o).x && this.y == ((Location) o).y) {
                     return true;
                 } else {
