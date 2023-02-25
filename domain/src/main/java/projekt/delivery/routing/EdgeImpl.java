@@ -111,7 +111,7 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H4.4 - remove if implemented
+        return Objects.hash(name, locationA, locationB, duration);
     }
 
     @Override
