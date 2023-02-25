@@ -3,6 +3,7 @@ package projekt.delivery.routing;
 import org.jetbrains.annotations.Nullable;
 import projekt.base.Location;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static org.tudalgo.algoutils.student.Student.crash;
@@ -54,7 +55,13 @@ class NodeImpl implements Region.Node {
 
     @Override
     public @Nullable Region.Edge getEdge(Region.Node other) {
-        return crash(); // TODO: H3.1 - remove if implemented
+        Collection<Region.Edge> edges = getRegion().getEdges();
+        for (Region.Edge edge : edges) {
+            if (edge.getNodeA() == other || edge.getNodeB() == other) {
+                return edge;
+            }
+        }
+        return null;
     }
 
     @Override
