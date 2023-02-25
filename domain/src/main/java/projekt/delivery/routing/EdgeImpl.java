@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import projekt.base.Location;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
@@ -95,7 +96,17 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public boolean equals(Object o) {
-        return crash(); // TODO: H4.3 - remove if implemented
+        if(o == null || !(o instanceof EdgeImpl)){
+            return false;
+        }
+        else{
+            if(o == this){
+                return true;
+            }
+            else{
+                return Objects.equals(this.name, ((EdgeImpl)o).name) && Objects.equals(this.locationA, ((EdgeImpl)o).locationA) && Objects.equals(this.locationB, ((EdgeImpl)o).locationB) && Objects.equals(this.duration, ((EdgeImpl)o).duration);
+            }
+        }
     }
 
     @Override
