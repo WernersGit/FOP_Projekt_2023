@@ -3,6 +3,8 @@ package projekt.delivery.routing;
 import org.jetbrains.annotations.NotNull;
 import projekt.base.Location;
 
+import java.util.Comparator;
+
 import static org.tudalgo.algoutils.student.Student.crash;
 
 /**
@@ -86,7 +88,9 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public int compareTo(Region.@NotNull Edge o) {
-        return crash(); // TODO: H4.2 - remove if implemented
+        Comparator<Region.Edge> compareA = Comparator.comparing(Region.Edge::getNodeA);
+        Comparator<Region.Edge> compareB = Comparator.comparing(Region.Edge::getNodeB);
+        return compareA.thenComparing(compareB).compare(this, o);
     }
 
     @Override
