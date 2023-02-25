@@ -1,0 +1,8 @@
+.chart-vertical-grid-lines {
+    -fx-stroke: white;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: white;
+}
+
