@@ -116,6 +116,6 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public String toString() {
-        return crash(); // TODO: H4.5 - remove if implemented
+        return "EdgeImpl(name='" + name.toString() + "', locationA='" + locationA.toString() + "', locationB='" + locationB.toString() + "', duration='" + duration + "')";
     }
 }
