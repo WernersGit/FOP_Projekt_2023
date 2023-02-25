@@ -124,11 +124,11 @@ class NodeImpl implements Region.Node {
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H3.6 - remove if implemented
+        return Objects.hash(name, location, connections);
     }
 
     @Override
     public String toString() {
-        return crash(); // TODO: H3.7 - remove if implemented
+        return "NodeImpl(name='" + name.toString() + "', location='" + location.toString() + "', connections='" + connections.toString() + "')";
     }
 }
