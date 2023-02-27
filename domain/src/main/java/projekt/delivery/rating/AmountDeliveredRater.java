@@ -1,9 +1,11 @@
 package projekt.delivery.rating;
 
+import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
 import projekt.delivery.simulation.Simulation;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
@@ -17,6 +19,8 @@ public class AmountDeliveredRater implements Rater {
     public static final RatingCriteria RATING_CRITERIA = RatingCriteria.AMOUNT_DELIVERED;
 
     private final double factor;
+    double totalOrders;
+    double undeliveredOrders;
 
     private AmountDeliveredRater(double factor) {
         this.factor = factor;
@@ -24,7 +28,13 @@ public class AmountDeliveredRater implements Rater {
 
     @Override
     public double getScore() {
-        return crash(); // TODO: H8.1 - remove if implemented
+
+        double score;
+        if (0 < undeliveredOrders && undeliveredOrders < totalOrders * 1 - factor)
+            score = 1 - undeliveredOrders / (totalOrders * (1 - factor));
+        else score = 0;
+
+        return score;
     }
 
     @Override
@@ -34,7 +44,13 @@ public class AmountDeliveredRater implements Rater {
 
     @Override
     public void onTick(List<Event> events, long tick) {
-        crash(); // TODO: H8.1 - remove if implemented
+        totalOrders = events.size();
+
+        undeliveredOrders = events.stream()
+                .filter(x -> x instanceof DeliverOrderEvent)
+                .map(y -> (DeliverOrderEvent) y)
+                .filter(z -> z.getOrder() == null)
+                .toList().size();
     }
 
     /**

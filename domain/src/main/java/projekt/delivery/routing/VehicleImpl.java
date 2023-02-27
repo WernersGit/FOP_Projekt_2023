@@ -56,6 +56,8 @@ class VehicleImpl implements Vehicle {
         if (this.getOccupied().getComponent().equals(node))
             throw new IllegalArgumentException();
         else moveQueued(node, arrivalAction);
+
+
     }
 
     @Override
