@@ -178,7 +178,7 @@ public class TutorTests_H4_EdgeImplTest {
             .subject("EdgeImpl#toString()")
             .build();
 
-        String expected = "EdgeImpl(name='AB', locationA='(0, 0)', locationB='(1, 1)', duration='1')";
+        String expected = "EdgeImpl(name='AB', locationA='(0,0)', locationB='(1,1)', duration='1')";
 
         assertEquals(expected, edgeAB.toString(), context, TR -> "The method did not return the correct string.");
     }

@@ -191,7 +191,7 @@ public class TutorTests_H3_NodeImplTest {
             .subject("NodeImpl#toString()")
             .build();
 
-        assertEquals("NodeImpl(name='A', location='(0, 0)', connections='" + Set.of(locationB, locationC) + "')", nodeA.toString(), context,
+        assertEquals("NodeImpl(name='A', location='(0,0)', connections='" + Set.of(locationB, locationC) + "')", nodeA.toString(), context,
             TR -> "The methode toString did not return the correct string.");
     }
 }
