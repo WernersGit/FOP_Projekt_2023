@@ -55,10 +55,10 @@ O projekt.delivery.generator.FridayOrderGenerator$Factory 300 15 0.500000 0.5000
 END ORDER GENERATOR
 RA
 START RATER
-R AMOUNT_DELIVERED projekt.delivery.rating.AmountDeliveredRater$Factory 0.990000
+R AMOUNT_DELIVERED projekt.delivery.rating.AmountDeliveredRater$Factory 0.900000
 R IN_TIME projekt.delivery.rating.InTimeRater$Factory 5 25
 R TRAVEL_DISTANCE projekt.delivery.rating.TravelDistanceRater$Factory 0.900000
 END RATER
-L 700
+L 500
 N problem2
 END PROBLEM ARCHETYPE
