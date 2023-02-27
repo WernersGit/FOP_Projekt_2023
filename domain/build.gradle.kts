@@ -1,10 +1,6 @@
-plugins {
-    `java-library`
-}
-
 dependencies {
     implementation(libs.annotations)
-    api(libs.algoutils.student)
+    implementation(libs.algoutils.student)
     testImplementation(libs.junit.core)
 }
 
