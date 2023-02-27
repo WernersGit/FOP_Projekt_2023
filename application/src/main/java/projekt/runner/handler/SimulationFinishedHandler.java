@@ -7,6 +7,7 @@ import projekt.runner.Runner;
 /**
  * An interface for handling when a {@link Simulation} got executed by a {@link Runner}.
  */
+@FunctionalInterface
 public interface SimulationFinishedHandler {
 
     /**
@@ -14,6 +15,7 @@ public interface SimulationFinishedHandler {
      *
      * @param simulation The {@link Simulation} that got executed.
      * @param problem    The simulated {@link ProblemArchetype}.
+     * @return {@code true} if the {@link Runner} should be interrupted (e.q. because the gui got closed).
      */
     boolean accept(Simulation simulation, ProblemArchetype problem);
 }

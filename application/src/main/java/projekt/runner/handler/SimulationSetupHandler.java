@@ -7,6 +7,7 @@ import projekt.runner.Runner;
 /**
  * An interface for handling the setup of a new simulation of a {@link Runner}.
  */
+@FunctionalInterface
 public interface SimulationSetupHandler {
 
     /**

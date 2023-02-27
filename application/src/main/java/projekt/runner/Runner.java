@@ -5,10 +5,13 @@ import projekt.delivery.archetype.ProblemGroup;
 import projekt.delivery.rating.RatingCriteria;
 import projekt.delivery.service.DeliveryService;
 import projekt.delivery.simulation.BasicDeliverySimulation;
+import projekt.delivery.simulation.Simulation;
 import projekt.delivery.simulation.SimulationConfig;
 import projekt.runner.handler.ResultHandler;
 import projekt.runner.handler.SimulationFinishedHandler;
 import projekt.runner.handler.SimulationSetupHandler;
+
+import java.util.Map;
 
 /**
  * A runner for executing a {@link ProblemGroup}.
@@ -38,5 +41,16 @@ public interface Runner {
         SimulationSetupHandler simulationSetupHandler,
         SimulationFinishedHandler simulationFinishedHandler,
         ResultHandler resultHandler);
+
+    /**
+     * Creates for every {@link ProblemArchetype} in the given {@link ProblemGroup} a {@link BasicDeliverySimulation} that simulates the {@link ProblemArchetype}.
+     * @param problemGroup The {@link ProblemGroup} that contains the {@link ProblemArchetype}s to create {@link BasicDeliverySimulation}s for.
+     * @param simulationConfig The config used by the created {@link BasicDeliverySimulation}s.
+     * @param deliveryServiceFactory The {@link DeliveryService.Factory} used to create the {@link DeliveryService}s for the {@link BasicDeliverySimulation}s.
+     * @return A {@link Map} that maps each {@link ProblemArchetype} of the given {@link ProblemGroup} to a {@link BasicDeliverySimulation} that simulates the {@link ProblemArchetype}.
+     */
+    Map<ProblemArchetype, Simulation> createSimulations(ProblemGroup problemGroup,
+                                                        SimulationConfig simulationConfig,
+                                                        DeliveryService.Factory deliveryServiceFactory);
 
 }
