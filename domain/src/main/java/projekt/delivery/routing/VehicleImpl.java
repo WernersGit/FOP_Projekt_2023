@@ -3,7 +3,7 @@ package projekt.delivery.routing;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
@@ -50,28 +50,13 @@ class VehicleImpl implements Vehicle {
     }
 
     @Override
-    public void moveDirect(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
-
-        moveQueue.clear();
-        if (this.getOccupied().getComponent().equals(node))
-            throw new IllegalArgumentException();
-        else moveQueued(node, arrivalAction);
+    public void moveDirect(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
+        crash(); // TODO: H5.4 - remove if implemented
     }
 
     @Override
-    public void moveQueued(Region.Node node, Consumer<? super Vehicle> arrivalAction) { //H5.2
-
-        if (this.vehicleManager.occupiedNodes.containsValue(node) && this.moveQueue.size() == 1)
-            throw new IllegalArgumentException();
-
-        ArrayDeque<Region.Node> nodeDeque = new ArrayDeque<>();
-        nodeDeque.addFirst(this.moveQueue.peekLast().nodes().getLast());
-        nodeDeque.addLast(node);
-        PathImpl path = new PathImpl(nodeDeque, arrivalAction);
-
-
-        this.moveQueue.addLast(path);
-
+    public void moveQueued(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
+        crash(); // TODO: H5.3 - remove if implemented
     }
 
     @Override
@@ -120,11 +105,11 @@ class VehicleImpl implements Vehicle {
         final PathImpl path = moveQueue.peek();
         if (path.nodes().isEmpty()) {
             moveQueue.pop();
-            final @Nullable Consumer<? super Vehicle> action = path.arrivalAction();
+            final @Nullable BiConsumer<? super Vehicle, Long> action = path.arrivalAction();
             if (action == null) {
                 move(currentTick);
             } else {
-                action.accept(this);
+                action.accept(this, currentTick);
             }
         } else {
             Region.Node next = path.nodes().peek();
@@ -139,17 +124,12 @@ class VehicleImpl implements Vehicle {
         }
     }
 
-    void loadOrder(ConfirmedOrder order) throws VehicleOverloadedException {
-
-        double totalWeight = this.getCurrentWeight() + order.getWeight();
-        if (totalWeight > this.getCapacity()) throw new VehicleOverloadedException(this, totalWeight);
-
-        this.orders.add(order);
+    void loadOrder(ConfirmedOrder order) {
+        crash(); // TODO: H5.2 - remove if implemented
     }
 
     void unloadOrder(ConfirmedOrder order) {
-
-    if (this.orders.contains(order)) orders.remove(order);
+        crash(); // TODO: H5.2 - remove if implemented
     }
 
     @Override
@@ -167,7 +147,7 @@ class VehicleImpl implements Vehicle {
             + ')';
     }
 
-    private record   PathImpl(Deque<Region.Node> nodes, Consumer<? super Vehicle> arrivalAction) implements Path {
+    private record PathImpl(Deque<Region.Node> nodes, BiConsumer<? super Vehicle, Long> arrivalAction) implements Path {
 
     }
 }
