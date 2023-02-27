@@ -19,6 +19,7 @@ public class BasicDeliverySimulation implements Simulation {
     private OrderGenerator currentOrderGenerator;
     private volatile boolean terminationRequested = false;
     protected long currentTick = 0;
+    protected long simulationLength = -1;
     protected List<Event> lastEvents;
     protected boolean isRunning = false;
     private SimulationListener endSimulationListener;
@@ -46,7 +47,7 @@ public class BasicDeliverySimulation implements Simulation {
         setupNewSimulation();
         isRunning = true;
 
-        while (!terminationRequested) {
+        while (!terminationRequested && (simulationLength == -1 || currentTick < simulationLength)) {
             if (simulationConfig.isPaused()) {
                 try {
                     //noinspection BusyWait
@@ -77,15 +78,13 @@ public class BasicDeliverySimulation implements Simulation {
             }
         }
 
+        simulationLength = -1;
         isRunning = false;
     }
 
     @Override
     public void runSimulation(long simulationLength) {
-        addListener((events, tick) -> {
-            if (tick == simulationLength) endSimulation();
-        });
-
+        this.simulationLength = simulationLength;
         runSimulation();
     }
 
@@ -107,6 +106,10 @@ public class BasicDeliverySimulation implements Simulation {
 
     @Override
     public double getRatingForCriterion(RatingCriteria criterion) {
+        if (!currentRaterMap.containsKey(criterion)) {
+            throw new IllegalArgumentException("No rater for criterion " + criterion);
+        }
+
         return currentRaterMap.get(criterion).getScore();
     }
 

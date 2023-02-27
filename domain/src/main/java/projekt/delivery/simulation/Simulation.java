@@ -45,6 +45,7 @@ public interface Simulation {
      * Returns the rating of this {@link Simulation} for the given {@link RatingCriteria}.
      * @param criterion The {@link RatingCriteria} to return the rating for.
      * @return The rating of this {@link Simulation} for the given {@link RatingCriteria}.
+     * @throws IllegalArgumentException If no {@link Rater} is registered for the given {@link RatingCriteria}.
      */
     double getRatingForCriterion(RatingCriteria criterion);
 
