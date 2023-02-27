@@ -51,12 +51,24 @@ class VehicleImpl implements Vehicle {
 
     @Override
     public void moveDirect(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
-        crash(); // TODO: H5.4 - remove if implemented
+        moveQueue.clear();
+        if (this.getOccupied().getComponent().equals(node))
+            throw new IllegalArgumentException();
+        else moveQueued(node, arrivalAction);
     }
 
     @Override
     public void moveQueued(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
-        crash(); // TODO: H5.3 - remove if implemented
+        if (this.vehicleManager.occupiedNodes.containsValue(node) && this.moveQueue.size() == 1)
+            throw new IllegalArgumentException();
+
+        ArrayDeque<Region.Node> nodeDeque = new ArrayDeque<>();
+        nodeDeque.addFirst(this.moveQueue.peekLast().nodes().getLast());
+        nodeDeque.addLast(node);
+        PathImpl path = new PathImpl(nodeDeque, arrivalAction);
+
+
+        this.moveQueue.addLast(path);
     }
 
     @Override
@@ -125,11 +137,14 @@ class VehicleImpl implements Vehicle {
     }
 
     void loadOrder(ConfirmedOrder order) {
-        crash(); // TODO: H5.2 - remove if implemented
+        double totalWeight = this.getCurrentWeight() + order.getWeight();
+        if (totalWeight > this.getCapacity()) throw new VehicleOverloadedException(this, totalWeight);
+
+        this.orders.add(order);
     }
 
     void unloadOrder(ConfirmedOrder order) {
-        crash(); // TODO: H5.2 - remove if implemented
+        if (this.orders.contains(order)) orders.remove(order);
     }
 
     @Override
