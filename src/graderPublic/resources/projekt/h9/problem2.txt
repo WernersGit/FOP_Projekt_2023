@@ -1,0 +1,64 @@
+START PROBLEM ARCHETYPE
+RE
+START REGION
+R Los Fopbots Hermanos,10,8,Pizza Margherita,Spaghetti Bolognese,Rigatoni
+NH Gross-Gerau,0,5
+NH Langen,6,0
+N Wiesbadener Kreuz,-4,-5
+N Dreieck Mainz,-10,-1
+NH Wiesbaden,-9,-4
+NH Darmstadt,6,8
+NH Frankfurt,8,-8
+NH Offenbach,10,-7
+NH Mainz,-8,0
+N Frankfurter Kreuz,4,-4
+N Mainspitzdreieck,-5,0
+NH Ruesselsheim,-2,0
+N Moenchhof-Dreieck,1,-2
+E A643,-10,-1,-9,-4
+E A60,-10,-1,-8,0
+E A671,-9,-4,-5,0
+E A66,-9,-4,-4,-5
+E A60_1,-8,0,-5,0
+E A60_2,-5,0,-2,0
+E A3,-4,-5,1,-2
+E A66_1,-4,-5,8,-8
+E A67_2,-2,0,0,5
+E A67,-2,0,1,-2
+E A67_1,0,5,6,8
+E A3_1,1,-2,4,-4
+E A5_1,4,-4,6,0
+E A5,4,-4,8,-8
+E A3_2,4,-4,10,-7
+E A5_2,6,0,6,8
+E FOP-Street,6,8,10,8
+D EuclideanDistanceCalculator
+END REGION
+V
+START VEHICLE MANAGER
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+V 10,8,2.000000
+P DijkstraPathCalculator
+END VEHICLE MANAGER
+O
+START ORDER GENERATOR
+O projekt.delivery.generator.FridayOrderGenerator$Factory 300 15 0.500000 0.500000 400 -1
+END ORDER GENERATOR
+RA
+START RATER
+R AMOUNT_DELIVERED projekt.delivery.rating.AmountDeliveredRater$Factory 0.900000
+R IN_TIME projekt.delivery.rating.InTimeRater$Factory 5 25
+R TRAVEL_DISTANCE projekt.delivery.rating.TravelDistanceRater$Factory 0.900000
+END RATER
+L 500
+N problem2
+END PROBLEM ARCHETYPE
