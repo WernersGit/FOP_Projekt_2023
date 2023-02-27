@@ -8,6 +8,7 @@ import java.util.Map;
 /**
  * An interface for handling the result of a {@link Runner}.
  */
+@FunctionalInterface
 public interface ResultHandler {
 
     /**
