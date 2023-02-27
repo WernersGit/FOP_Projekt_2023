@@ -3,6 +3,9 @@ package projekt.delivery.routing;
 import org.jetbrains.annotations.NotNull;
 import projekt.base.Location;
 
+import java.util.Comparator;
+import java.util.Objects;
+
 import static org.tudalgo.algoutils.student.Student.crash;
 
 /**
@@ -76,31 +79,43 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public Region.Node getNodeA() {
-        return crash(); // TODO: H4.1 - remove if implemented
+        return region.getNode(locationA);
     }
 
     @Override
     public Region.Node getNodeB() {
-        return crash(); // TODO: H4.1 - remove if implemented
+        return region.getNode(locationB);
     }
 
     @Override
     public int compareTo(Region.@NotNull Edge o) {
-        return crash(); // TODO: H4.2 - remove if implemented
+        Comparator<Region.Edge> compareA = Comparator.comparing(Region.Edge::getNodeA);
+        Comparator<Region.Edge> compareB = Comparator.comparing(Region.Edge::getNodeB);
+        return compareA.thenComparing(compareB).compare(this, o);
     }
 
     @Override
     public boolean equals(Object o) {
-        return crash(); // TODO: H4.3 - remove if implemented
+        if(o == null || !(o instanceof EdgeImpl)){
+            return false;
+        }
+        else{
+            if(o == this){
+                return true;
+            }
+            else{
+                return Objects.equals(this.name, ((EdgeImpl)o).name) && Objects.equals(this.locationA, ((EdgeImpl)o).locationA) && Objects.equals(this.locationB, ((EdgeImpl)o).locationB) && Objects.equals(this.duration, ((EdgeImpl)o).duration);
+            }
+        }
     }
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H4.4 - remove if implemented
+        return Objects.hash(name, locationA, locationB, duration);
     }
 
     @Override
     public String toString() {
-        return crash(); // TODO: H4.5 - remove if implemented
+        return "EdgeImpl(name='" + name.toString() + "', locationA='" + locationA.toString() + "', locationB='" + locationB.toString() + "', duration='" + duration + "')";
     }
 }
