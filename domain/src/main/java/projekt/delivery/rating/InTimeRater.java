@@ -1,12 +1,11 @@
 package projekt.delivery.rating;
 
+import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.simulation.Simulation;
 
 import java.util.List;
-
-import static org.tudalgo.algoutils.student.Student.crash;
 
 /**
  * Rates the observed {@link Simulation} based on the punctuality of the orders.<p>
@@ -19,7 +18,8 @@ public class InTimeRater implements Rater {
 
     private final long ignoredTicksOff;
     private final long maxTicksOff;
-
+    private double actualTotalTicksOff;
+    private double maxTotalTicksOff;
     /**
      * Creates a new {@link InTimeRater} instance.
      * @param ignoredTicksOff The amount of ticks this {@link InTimeRater} ignores when dealing with an {@link ConfirmedOrder} that didn't get delivered in time.
@@ -35,12 +35,41 @@ public class InTimeRater implements Rater {
 
     @Override
     public double getScore() {
-        return crash(); // TODO: H8.2 - remove if implemented
+        double score;
+
+        if (maxTotalTicksOff == 0) score = 0;
+        else {
+            score = 1- (actualTotalTicksOff/maxTotalTicksOff);
+        }
+        return score;
     }
 
     @Override
     public void onTick(List<Event> events, long tick) {
-        crash(); // TODO: H8.2 - remove if implemented
+        double totalTicksOff = 0;
+        double maxOffSum = 0;
+
+        List<DeliverOrderEvent> orders = events.stream()
+                .filter(x -> x instanceof DeliverOrderEvent)
+                .map(y -> (DeliverOrderEvent) y).toList();
+
+        for (int i = 0; i < orders.size(); i++) maxOffSum += maxTicksOff;
+
+        for (DeliverOrderEvent doe: orders) {
+
+            long latestDelivery = doe.getOrder().getDeliveryInterval().end();
+            long earliestDelivery = doe.getOrder().getDeliveryInterval().start();
+            long actualDelivery = doe.getOrder().getActualDeliveryTick();
+            if (actualDelivery > latestDelivery + ignoredTicksOff) {
+                totalTicksOff += actualDelivery - latestDelivery - ignoredTicksOff;
+            }
+            if (actualDelivery < earliestDelivery - ignoredTicksOff) {
+                totalTicksOff += -1*(actualDelivery - earliestDelivery - ignoredTicksOff);
+            }
+        }
+
+        actualTotalTicksOff = totalTicksOff;
+        maxTotalTicksOff = maxOffSum;
     }
 
     /**
