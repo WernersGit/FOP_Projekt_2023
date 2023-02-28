@@ -1,6 +1,6 @@
 [versions]
 algoutils = "0.4.0"
-algo-student = "0.6.0"
+algo-student = "0.6.3"
 
 [libraries]
 annotations = "org.jetbrains:annotations:23.0.0"
@@ -8,8 +8,9 @@ algoutils-student = { module = "org.tudalgo:algoutils-student", version.ref = "a
 algoutils-tutor = { module = "org.tudalgo:algoutils-tutor", version.ref = "algoutils" }
 flatlaf = "com.formdev:flatlaf:2.0.1"
 junit-core = { module = "org.junit.jupiter:junit-jupiter", version = "5.9.1" }
+mockito-inline = { module = "org.mockito:mockito-inline", version = "5.0.0" }
 
 [plugins]
 style = { id = "org.sourcegrade.style", version = "2.1.0" }
-jagr-gradle = { id = "org.sourcegrade.jagr-gradle", version = "0.7.0" }
+jagr-gradle = { id = "org.sourcegrade.jagr-gradle", version = "0.8.0" }
 javafx = { id = "org.openjfx.javafxplugin", version = "0.0.13" }

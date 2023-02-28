@@ -1,16 +1,12 @@
 package projekt.io;
 
 import projekt.base.*;
-import projekt.delivery.routing.CachedPathCalculator;
 import projekt.delivery.routing.Region;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class RegionIO {
@@ -43,10 +39,7 @@ public class RegionIO {
                 } else if (line.startsWith("R ")) {
                     String[] serializedNode = line.substring(2).split(",");
 
-                    List<String> availableFood = new ArrayList<>();
-                    for (int i = 3; i < serializedNode.length; i++) {
-                        availableFood.add(serializedNode[3]);
-                    }
+                    List<String> availableFood = new ArrayList<>(Arrays.asList(serializedNode).subList(3, serializedNode.length));
 
                     builder.addRestaurant(parseLocation(serializedNode[1], serializedNode[2]), new Region.Restaurant.Preset(serializedNode[0], availableFood));
                 } else if (line.startsWith("E ")) {

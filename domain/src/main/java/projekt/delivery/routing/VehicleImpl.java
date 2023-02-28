@@ -3,7 +3,7 @@ package projekt.delivery.routing;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
@@ -50,8 +50,7 @@ class VehicleImpl implements Vehicle {
     }
 
     @Override
-    public void moveDirect(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
-
+    public void moveDirect(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
         moveQueue.clear();
         if (this.getOccupied().getComponent().equals(node))
             throw new IllegalArgumentException();
@@ -61,8 +60,7 @@ class VehicleImpl implements Vehicle {
     }
 
     @Override
-    public void moveQueued(Region.Node node, Consumer<? super Vehicle> arrivalAction) { //H5.2
-
+    public void moveQueued(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
         if (this.vehicleManager.occupiedNodes.containsValue(node) && this.moveQueue.size() == 1)
             throw new IllegalArgumentException();
 
@@ -73,7 +71,6 @@ class VehicleImpl implements Vehicle {
 
 
         this.moveQueue.addLast(path);
-
     }
 
     @Override
@@ -122,11 +119,11 @@ class VehicleImpl implements Vehicle {
         final PathImpl path = moveQueue.peek();
         if (path.nodes().isEmpty()) {
             moveQueue.pop();
-            final @Nullable Consumer<? super Vehicle> action = path.arrivalAction();
+            final @Nullable BiConsumer<? super Vehicle, Long> action = path.arrivalAction();
             if (action == null) {
                 move(currentTick);
             } else {
-                action.accept(this);
+                action.accept(this, currentTick);
             }
         } else {
             Region.Node next = path.nodes().peek();
@@ -141,8 +138,7 @@ class VehicleImpl implements Vehicle {
         }
     }
 
-    void loadOrder(ConfirmedOrder order) throws VehicleOverloadedException {
-
+    void loadOrder(ConfirmedOrder order) {
         double totalWeight = this.getCurrentWeight() + order.getWeight();
         if (totalWeight > this.getCapacity()) throw new VehicleOverloadedException(this, totalWeight);
 
@@ -150,8 +146,7 @@ class VehicleImpl implements Vehicle {
     }
 
     void unloadOrder(ConfirmedOrder order) {
-
-    if (this.orders.contains(order)) orders.remove(order);
+        if (this.orders.contains(order)) orders.remove(order);
     }
 
     @Override
@@ -169,7 +164,7 @@ class VehicleImpl implements Vehicle {
             + ')';
     }
 
-    private record   PathImpl(Deque<Region.Node> nodes, Consumer<? super Vehicle> arrivalAction) implements Path {
+    private record PathImpl(Deque<Region.Node> nodes, BiConsumer<? super Vehicle, Long> arrivalAction) implements Path {
 
     }
 }

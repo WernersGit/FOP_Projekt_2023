@@ -120,6 +120,12 @@ public class MapPane extends Pane {
      * @param edge The {@link Region.Edge} to display.
      */
     public void addEdge(Region.Edge edge) {
+        if (selectedNode != null) {
+            if (edge.getNodeA().getLocation().equals(selectedNode.getLocation()) || edge.getNodeB().getLocation().equals(selectedNode.getLocation())) {
+                handleNodeClick(nodes.get(selectedNode).ellipse(), selectedNode);
+            }
+        }
+
         edges.put(edge, drawEdge(edge));
     }
 
@@ -156,6 +162,20 @@ public class MapPane extends Pane {
         return selectedEdge;
     }
 
+    /**
+     * Selects the given {@link Region.Edge} and executes the action set by {@link #onEdgeSelection(Consumer)}.
+     * <p>This is equivalent to clicking manually on the {@link Region.Edge}.</p>
+     *
+     * @throws IllegalArgumentException if the given {@link Region.Edge} is not part of this {@link MapPane}
+     * @param edge the edge to select
+     */
+    public void selectEdge(Region.Edge edge) {
+        if (!edges.containsKey(edge)) {
+            throw new IllegalArgumentException("The given edge is not part of this MapPane");
+        }
+
+        handleEdgeClick(edges.get(edge).line(), edge);
+    }
     /**
      * Sets the action that is supposed to be executed when the user selects an {@link Region.Edge}.
      *
@@ -260,6 +280,21 @@ public class MapPane extends Pane {
      */
     public Region.Node getSelectedNode() {
         return selectedNode;
+    }
+
+    /**
+     * Selects the given {@link Region.Node} and executes the action set by {@link #onNodeSelection(Consumer)}.
+     * <p>This is equivalent to clicking manually on the {@link Region.Node}.</p>
+     *
+     * @throws IllegalArgumentException if the given {@link Region.Node} is not part of this {@link MapPane}
+     * @param node the node to select
+     */
+    public void selectNode(Region.Node node) {
+        if (!nodes.containsKey(node)) {
+            throw new IllegalArgumentException("The given node is not part of this MapPane");
+        }
+
+        handleNodeClick(nodes.get(node).ellipse(), node);
     }
 
     /**
@@ -432,6 +467,10 @@ public class MapPane extends Pane {
         for (Vehicle vehicle : new HashSet<>(vehicles.keySet())) {
             removeVehicle(vehicle);
         }
+
+        selectedNode = null;
+        selectedEdge = null;
+        selectedVehicles = null;
     }
 
     /**
@@ -469,6 +508,16 @@ public class MapPane extends Pane {
 
         double minY = nodes.keySet().stream().map(node -> node.getLocation().getY())
             .collect(new ComparingCollector<Integer>(Comparator.reverseOrder()));
+
+        if (minX == maxX) {
+            minX = minX - 1;
+            maxX = maxX + 1;
+        }
+
+        if (minY == maxY) {
+            minY = minY - 1;
+            maxY = maxY + 1;
+        }
 
         AffineTransform reverse = new AffineTransform();
 
@@ -656,7 +705,7 @@ public class MapPane extends Pane {
                 nodeSelectionHandler.accept(selectedNode);
             }
 
-            if (vehiclesSelectionHandler != null && selectedVehicles != null) {
+            if (vehiclesSelectionHandler != null && selectedVehicles.size() != 0) {
                 vehiclesSelectionHandler.accept(selectedVehicles);
             }
         }

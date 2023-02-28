@@ -9,6 +9,7 @@ import java.util.List;
  *
  * The {@link #onTick(List, long)} will be called after a tick has been executed.
  */
+@FunctionalInterface
 public interface SimulationListener {
 
     /**
