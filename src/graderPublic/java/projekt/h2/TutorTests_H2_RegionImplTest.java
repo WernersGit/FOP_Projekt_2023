@@ -196,6 +196,10 @@ public class TutorTests_H2_RegionImplTest {
 
         Region region2 = createRegion();
 
+        Region.Node nodeA2 = createNode(region2, "A2", locationA, Set.of());
+        Region.Node nodeB2 = createNode(region2, "B2", locationB, Set.of());
+        addNodesToRegion(region2, nodeA2, nodeB2);
+
         Region.Edge edge = createEdge(region2, "EF", locationA, locationB, 1);
 
         try {
@@ -329,38 +333,52 @@ public class TutorTests_H2_RegionImplTest {
 
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void testGetNodes() throws Throwable {
+    public void testGetNodes() {
         Context build = contextBuilder()
             .subject("RegionImpl#getNodes()")
             .build();
 
-        Field unmodifiableNodesField = region.getClass().getDeclaredField("unmodifiableNodes");
-        unmodifiableNodesField.setAccessible(true);
-        Collection<Region.Node> unmodifiableNodes = (Collection<Region.Node>) unmodifiableNodesField.get(region);
-
         Collection<Region.Node> actual = region.getNodes();
 
-        assertSame(unmodifiableNodes, actual, build,
-            TR -> "RegionImpl#getNodes() does not return the unmodifiableNodes set.");
+        assertThrows(UnsupportedOperationException.class, () -> actual.add(null), build,
+            TR -> "RegionImpl#getNodes() does not return an unmodifiable collection.");
+
+        assertEquals(4, actual.size(), build,
+            TR -> "RegionImpl#getNodes() does not return a collection with the correct size.");
+
+        assertTrue(actual.contains(nodeA), build,
+            TR -> "RegionImpl#getNodes() does not return a collection containing nodeA, which is part of the region.");
+        assertTrue(actual.contains(nodeB), build,
+            TR -> "RegionImpl#getNodes() does not return a collection containing nodeB, which is part of the region.");
+        assertTrue(actual.contains(nodeC), build,
+            TR -> "RegionImpl#getNodes() does not return a collection containing nodeC, which is part of the region.");
+        assertTrue(actual.contains(nodeD), build,
+            TR -> "RegionImpl#getNodes() does not return a collection containing nodeD, which is part of the region.");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void testGetEdges() throws Throwable {
+    public void testGetEdges() {
         Context build = contextBuilder()
             .subject("RegionImpl#getEdges()")
             .build();
 
-        Field unmodifiableEdgesField = region.getClass().getDeclaredField("unmodifiableEdges");
-        unmodifiableEdgesField.setAccessible(true);
-        Collection<Region.Edge> unmodifiableNodes = (Collection<Region.Edge>) unmodifiableEdgesField.get(region);
-
         Collection<Region.Edge> actual = region.getEdges();
 
-        assertSame(unmodifiableNodes, actual, build,
-            TR -> "RegionImpl#getEdges() does not return the unmodifiableEdges set.");
+        assertThrows(UnsupportedOperationException.class, () -> actual.add(null), build,
+            TR -> "RegionImpl#getEdges() does not return an unmodifiable collection.");
+
+        assertEquals(4, actual.size(), build,
+            TR -> "RegionImpl#getEdges() does not return a collection with the correct size.");
+
+        assertTrue(actual.contains(edgeAB), build,
+            TR -> "RegionImpl#getEdges() does not return a collection containing edgeAB, which is part of the region.");
+        assertTrue(actual.contains(edgeAC), build,
+            TR -> "RegionImpl#getEdges() does not return a collection containing edgeAC, which is part of the region.");
+        assertTrue(actual.contains(edgeBC), build,
+            TR -> "RegionImpl#getEdges() does not return a collection containing edgeBC, which is part of the region.");
+        assertTrue(actual.contains(edgeCD), build,
+            TR -> "RegionImpl#getEdges() does not return a collection containing edgeCD, which is part of the region.");
     }
 
 
@@ -426,10 +444,21 @@ public class TutorTests_H2_RegionImplTest {
         edgesField.setAccessible(true);
         Map<Location, Map<Location, Region.Edge>> edges = (Map<Location, Map<Location, Region.Edge>>) edgesField.get(region);
 
-        int expected = Objects.hash(nodes, edges);
+        Field allEdgesField = region.getClass().getDeclaredField("allEdges");
+        allEdgesField.setAccessible(true);
+        List<Region.Edge> allEdges = (List<Region.Edge>) allEdgesField.get(region);
 
-        assertEquals(expected, region.hashCode(), context,
-            TR -> "RegionImpl#hashCode() does not return the expected hash code.");
+        int expected1 = Objects.hash(nodes, edges);
+        int expected2 = Objects.hash(nodes, allEdges);
+
+        int actual = region.hashCode();
+
+        if (actual == expected1 || actual == expected2) {
+            return;
+        }
+
+        fail(context, TR -> "RegionImpl#hashCode() does not return the expected hash code. Expected %d or %d but was %d"
+            .formatted(expected1, expected2, actual));
     }
 
 }
