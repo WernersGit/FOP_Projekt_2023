@@ -132,11 +132,11 @@ public class TutorTests_H5_VehicleTest {
             callLoadOrder(vehicle, order2);
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof VehicleOverloadedException, context,
-                TR -> "Vehicle.loadOrder(ConfirmedOrder) did not throw an IllegalArgumentException when the order could not be loaded");
+                TR -> "Vehicle.loadOrder(ConfirmedOrder) did not throw an VehicleOverloadedException when the order could not be loaded");
             assertEquals("Vehicle with id %d is overloaded! Maximum capacity: %f Necessary capacity: %f"
                     .formatted(vehicle.getId(), vehicle.getCapacity(), order1.getWeight() + order2.getWeight() + order3.getWeight()),
                 e.getCause().getMessage(), context,
-                TR -> "Vehicle.loadOrder(ConfirmedOrder) did not throw an IllegalArgumentException with the correct message when the order could not be loaded");
+                TR -> "Vehicle.loadOrder(ConfirmedOrder) did not throw an VehicleOverloadedException with the correct message when the order could not be loaded");
         }
 
     }
@@ -255,12 +255,9 @@ public class TutorTests_H5_VehicleTest {
             .add("input", locationE)
             .build();
 
-        try {
-            vehicle.moveQueued(restaurantE, (v, t) -> {});
-        } catch (IllegalArgumentException e) {
-            assertEquals("Vehicle " + vehicle.getId() + " cannot move to own node " + restaurantE.toString(), e.getMessage(), context,
-                TR -> "Vehicle.moveQueued(Node, Consumer<Vehicle>) did not throw an IllegalArgumentException with the correct message when the node to move to was the currently occupied node");
-        }
+        assertThrows(IllegalArgumentException.class, () -> vehicle.moveQueued(restaurantE, (v, t) -> {
+            }), context,
+            TR -> "Vehicle.moveQueued(Node, Consumer<Vehicle>) did not throw an IllegalArgumentException when the node to move to was the currently occupied node");
     }
 
     @Test
@@ -467,12 +464,9 @@ public class TutorTests_H5_VehicleTest {
             .add("input", locationE)
             .build();
 
-        try {
-            vehicle.moveDirect(restaurantE, (v, t) -> {});
-        } catch (IllegalArgumentException e) {
-            assertEquals("Vehicle " + vehicle.getId() + " cannot move to own node " + restaurantE.toString(), e.getMessage(), context,
-                TR -> "Vehicle.moveQueued(Node, Consumer<Vehicle>) did not throw an IllegalArgumentException with the correct message when the node to move to was the currently occupied node");
-        }
+        assertThrows(IllegalArgumentException.class, () -> vehicle.moveDirect(restaurantE, (v, t) -> {
+            }), context,
+            TR -> "Vehicle.moveQueued(Node, Consumer<Vehicle>) did not throw an IllegalArgumentException when the node to move to was the currently occupied node");
     }
 
     @Test
@@ -530,21 +524,25 @@ public class TutorTests_H5_VehicleTest {
 
     @SuppressWarnings({"JavaReflectionInvocation"})
     @Test
-    public void testMoveDirectOnEdge() throws ReflectiveOperationException {
+    public void testMoveDirectOnEdgeToNodeA() throws ReflectiveOperationException {
 
         Context context = contextBuilder()
             .subject("VehicleImpl#moveDirect(Node, Consumer<Vehicle>)")
-            .add("current edgeA", locationE)
-            .add("current edgeB", locationD)
+            .add("current nodeA", locationD)
+            .add("current nodaB", locationE)
+            .add("movement to", locationD)
             .add("input", locationA)
             .build();
 
         Vehicle vehicle = spy(createVehicle(2, 10, vehicleManager, vehicleManager.getOccupiedRestaurant(restaurantE)));
-        addVehicleToVehicleManager(vehicleManager, vehicle, vehicleManager.getOccupied(restaurantE));
+        addVehicleToVehicleManager(vehicleManager, vehicle, vehicleManager.getOccupiedRestaurant(restaurantE));
 
-        BiConsumer<Vehicle, Long> arrivalAction = (v, t) -> {};
+        BiConsumer<Vehicle, Long> arrivalAction = (v, t) -> {
+        };
 
         getMoveQueueOfVehicle(vehicle).clear();
+        getMoveQueueOfVehicle(vehicle).push(createPath(new LinkedList<>(List.of(nodeD, nodeC)), (v, t) -> {
+        }));
 
         Method addVehicle = VehicleManager.Occupied.class.getDeclaredMethod("addVehicle", Class.forName("projekt.delivery.routing.VehicleImpl"), long.class);
         addVehicle.setAccessible(true);
@@ -565,14 +563,64 @@ public class TutorTests_H5_VehicleTest {
             TR -> "The first path added to the move queue does not contain the correct number of nodes when the vehicle is on an edge");
 
         assertEquals(nodeD, nodes.pop(), context,
-            TR -> "The first path added to the move queue does not contain the correct node when the vehicle is on an edge");
+            TR -> "The first path added to the move queue does not contain the node the vehicle previously moved to when the vehicle is on an edge");
 
         assertEquals(nodeA, nodeCaptor.getValue(), context,
             TR -> "Vehicle.moveDirect(Node, Consumer<Vehicle>) did not pass the correct node to the moveQueued method");
 
         assertEquals(arrivalAction, arrivalActionCaptor.getValue(), context,
             TR -> "Vehicle.moveDirect(Node, Consumer<Vehicle>) did not pass the correct arrival action to the moveQueued method");
+    }
 
+    @SuppressWarnings({"JavaReflectionInvocation"})
+    @Test
+    public void testMoveDirectOnEdgeToNodeB() throws ReflectiveOperationException {
+
+        Context context = contextBuilder()
+            .subject("VehicleImpl#moveDirect(Node, Consumer<Vehicle>)")
+            .add("current nodeA", locationD)
+            .add("current nodaB", locationE)
+            .add("movement to", locationE)
+            .add("input", locationA)
+            .build();
+
+        Vehicle vehicle = spy(createVehicle(2, 10, vehicleManager, vehicleManager.getOccupiedRestaurant(restaurantE)));
+        setOccupiedOfVehicle(vehicle, vehicleManager.getOccupied(nodeD));
+        addVehicleToVehicleManager(vehicleManager, vehicle, vehicleManager.getOccupied(nodeD));
+
+        BiConsumer<Vehicle, Long> arrivalAction = (v, t) -> {
+        };
+
+        getMoveQueueOfVehicle(vehicle).clear();
+        getMoveQueueOfVehicle(vehicle).push(createPath(new LinkedList<>(List.of(restaurantE, nodeD)), (v, t) -> {
+        }));
+
+        Method addVehicle = VehicleManager.Occupied.class.getDeclaredMethod("addVehicle", Class.forName("projekt.delivery.routing.VehicleImpl"), long.class);
+        addVehicle.setAccessible(true);
+        addVehicle.invoke(vehicleManager.getOccupied(edgeDE), vehicle, 0);
+
+        doNothing().when(vehicle).moveQueued(nodeCaptor.capture(), arrivalActionCaptor.capture());
+
+        vehicle.moveDirect(nodeA, arrivalAction);
+
+        verify(vehicle, times(1)).moveQueued(any(), any());
+
+        assertEquals(1, getMoveQueueOfVehicle(vehicle).size(), context,
+            TR -> "Vehicle.moveDirect(Node, Consumer<Vehicle>) did not add a the path to the next node to the move queue or added to many when the vehicle is on an edge");
+
+        Deque<Region.Node> nodes = getMoveQueueOfVehicle(vehicle).pop().nodes();
+
+        assertEquals(1, nodes.size(), context,
+            TR -> "The first path added to the move queue does not contain the correct number of nodes when the vehicle is on an edge");
+
+        assertEquals(restaurantE, nodes.pop(), context,
+            TR -> "The first path added to the move queue does not contain the node the vehicle previously moved to when the vehicle is on an edge");
+
+        assertEquals(nodeA, nodeCaptor.getValue(), context,
+            TR -> "Vehicle.moveDirect(Node, Consumer<Vehicle>) did not pass the correct node to the moveQueued method");
+
+        assertEquals(arrivalAction, arrivalActionCaptor.getValue(), context,
+            TR -> "Vehicle.moveDirect(Node, Consumer<Vehicle>) did not pass the correct arrival action to the moveQueued method");
     }
 
 }
