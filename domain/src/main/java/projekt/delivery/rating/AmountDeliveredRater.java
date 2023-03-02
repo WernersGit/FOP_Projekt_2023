@@ -30,7 +30,7 @@ public class AmountDeliveredRater implements Rater {
     public double getScore() {
 
         double score;
-        if (0 < undeliveredOrders && undeliveredOrders < totalOrders * 1 - factor)
+        if (0 < undeliveredOrders && undeliveredOrders < totalOrders * (1 - factor))
             score = 1 - undeliveredOrders / (totalOrders * (1 - factor));
         else score = 0;
 
