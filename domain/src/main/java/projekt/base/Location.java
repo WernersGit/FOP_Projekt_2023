@@ -83,13 +83,27 @@ public final class Location implements Comparable<Location> {
 
     @Override
     public int hashCode() {
-        int returnValue;
-        int prime = 31;
+        
+        /**
+         * A tuple for the x- and y-coordinates of a point.
+         */
+        class HashForLocation{
+            private final int x;
+            private final int y;
 
-        returnValue = prime + x;
-        returnValue = prime * returnValue + y;
+            /**
+             * Instantiates a new {@link HashForLocation} object using {@code x} and {@code y} as coordinates.
+             *
+             * @param x the x coordinate
+             * @param y the y coordinate
+             */
+            public HashForLocation(int x, int y) {
+                this.x = x;
+                this.y = y;
+            }
+        }
 
-        return returnValue;
+        return Objects.hashCode(new HashForLocation(x, y));
     }
 
     @Override
