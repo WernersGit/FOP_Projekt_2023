@@ -57,14 +57,20 @@ public class InTimeRater implements Rater {
 
         for (DeliverOrderEvent doe: orders) {
 
+            if (doe.getOrder() == null) {
+                totalTicksOff += maxTicksOff;
+                continue;
+            }
             long latestDelivery = doe.getOrder().getDeliveryInterval().end();
             long earliestDelivery = doe.getOrder().getDeliveryInterval().start();
             long actualDelivery = doe.getOrder().getActualDeliveryTick();
             if (actualDelivery > latestDelivery + ignoredTicksOff) {
-                totalTicksOff += actualDelivery - latestDelivery - ignoredTicksOff;
+
+                totalTicksOff += Math.max(actualDelivery - latestDelivery - ignoredTicksOff, maxTicksOff);
+                continue;
             }
             if (actualDelivery < earliestDelivery - ignoredTicksOff) {
-                totalTicksOff += -1*(actualDelivery - earliestDelivery - ignoredTicksOff);
+                totalTicksOff += -1*(Math.max(actualDelivery - earliestDelivery - ignoredTicksOff, maxTicksOff));
             }
         }
 

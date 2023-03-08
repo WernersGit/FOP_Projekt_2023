@@ -2,6 +2,7 @@ package projekt.delivery.rating;
 
 import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
+import projekt.delivery.event.OrderReceivedEvent;
 import projekt.delivery.simulation.Simulation;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class AmountDeliveredRater implements Rater {
     public double getScore() {
 
         double score;
-        if (0 < undeliveredOrders && undeliveredOrders < totalOrders * (1 - factor))
+        if (0 <= undeliveredOrders && undeliveredOrders < totalOrders * (1 - factor))
             score = 1 - undeliveredOrders / (totalOrders * (1 - factor));
         else score = 0;
 
@@ -44,13 +45,18 @@ public class AmountDeliveredRater implements Rater {
 
     @Override
     public void onTick(List<Event> events, long tick) {
-        totalOrders = events.size();
+
+        totalOrders = events.stream()
+                .filter(x -> x instanceof OrderReceivedEvent)
+                .toList()
+                .size();
 
         undeliveredOrders = events.stream()
-                .filter(x -> x instanceof DeliverOrderEvent)
-                .map(y -> (DeliverOrderEvent) y)
+                .filter(x -> x instanceof OrderReceivedEvent)
+                .map(y -> (OrderReceivedEvent) y)
                 .filter(z -> z.getOrder() == null)
                 .toList().size();
+
     }
 
     /**
