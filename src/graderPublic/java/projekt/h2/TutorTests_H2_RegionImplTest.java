@@ -208,7 +208,7 @@ public class TutorTests_H2_RegionImplTest {
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException, context,
                 TR -> "RegionImpl#putEdge(Edge) does not throw an IllegalArgumentException if the given edge is in another region.");
-            assertEquals(e.getCause().getMessage(), "Edge %s has incorrect region".formatted(edge.toString()), context,
+            assertEquals("Edge %s has incorrect region".formatted(edge.toString()), e.getCause().getMessage(), context,
                 TR -> "RegionImpl#putEdge(Edge) does not throw an IllegalArgumentException with the correct message if the given edge is in another region.");
         }
 
@@ -297,7 +297,7 @@ public class TutorTests_H2_RegionImplTest {
         assertTrue(edges.get(locationA).containsKey(locationD), context,
             TR -> "RegionImpl#putEdge(Edge) does not add locationB as a key to the inner edges map if there are already entries for locationA.");
 
-        assertSame("NodeB %s is not part of the region".formatted(locationB.toString()), edges.get(locationA).get(locationD), context,
+        assertSame(edge, edges.get(locationA).get(locationD), context,
             TR -> "RegionImpl#putEdge(Edge) does not add the given edge to the inner edges map if there are already entries for locationA.");
     }
 

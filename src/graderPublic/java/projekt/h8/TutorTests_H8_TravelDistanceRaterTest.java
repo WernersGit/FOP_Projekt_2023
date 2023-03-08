@@ -171,7 +171,7 @@ public class TutorTests_H8_TravelDistanceRaterTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"0.75, 0.1999", "0.95, 0.3694"})
+    @CsvSource({"0.75, 0.7333", "0.95, 0.7894"})
     public void testLessThanWorstDistanceTraveled(double factor, double expected) throws ReflectiveOperationException {
 
         Rater travelDistanceRater = TravelDistanceRater.Factory.builder()

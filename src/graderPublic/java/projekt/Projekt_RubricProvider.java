@@ -130,12 +130,12 @@ public class Projekt_RubricProvider implements RubricProvider {
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeAllEdges"));
 
     public static final Criterion H2_4_3 = createCriterion("Die Methode putEdge der Klasse RegionImpl funktioniert korrekt wenn edges die erste Node bereits enthält",
-        () -> TutorTests_H2_RegionImplTest.class.getMethod("testGetEdgeSimple"));
+        () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeSimple"));
 
     public static final Criterion H2_4_4 = createCriterion("Die Methode putEdge der Klasse RegionImpl funktioniert vollständig korrekt",
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeException"),
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeAllEdges"),
-        () -> TutorTests_H2_RegionImplTest.class.getMethod("testGetEdgeSimple"),
+        () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeSimple"),
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeComplex"));
 
     public static final Criterion H2_4 = createParentCriterion("2.4", "putEdge", H2_4_1, H2_4_2, H2_4_3, H2_4_4);
