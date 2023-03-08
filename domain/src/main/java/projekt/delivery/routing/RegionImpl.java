@@ -121,6 +121,6 @@ class RegionImpl implements Region {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.edges, this.nodes);
+        return Objects.hash(this.nodes, this.edges);
     }
 }
