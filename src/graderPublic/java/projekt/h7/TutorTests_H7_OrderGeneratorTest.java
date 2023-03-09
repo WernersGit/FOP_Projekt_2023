@@ -98,7 +98,7 @@ public class TutorTests_H7_OrderGeneratorTest {
         generator = FridayOrderGenerator.Factory.builder()
             .setOrderCount(orderCount)
             .setMaxWeight(maxWeight)
-            .setStandardDeviation(variance)
+            .setVariance(variance)
             .setLastTick(lastTick)
             .setDeliveryInterval(deliveryInterval)
             .setSeed(seed)
@@ -162,7 +162,7 @@ public class TutorTests_H7_OrderGeneratorTest {
             generator = FridayOrderGenerator.Factory.builder()
                 .setDeliveryInterval(1)
                 .setLastTick(50)
-                .setStandardDeviation(0.25)
+                .setVariance(0.25)
                 .setOrderCount(500)
                 .setSeed(-1)
                 .setVehicleManager(vehicleManager)
@@ -215,7 +215,7 @@ public class TutorTests_H7_OrderGeneratorTest {
 
         List<Double> weights = new ArrayList<>();
 
-        for (int i = 0; i <= lastTick; i++) {
+        for (int i = 0; i <= lastTick; i += deliveryInterval) {
             for (ConfirmedOrder order : generator.generateOrders(i)) {
                 weights.add(order.getWeight());
                 if (order.getWeight() < 0) {
@@ -246,7 +246,7 @@ public class TutorTests_H7_OrderGeneratorTest {
             .add("seed", seed)
             .build();
 
-        for (int i = 0; i <= lastTick; i++) {
+        for (int i = 0; i <= lastTick; i += deliveryInterval) {
             for (ConfirmedOrder order : generator.generateOrders(i)) {
                 assertEquals(i, (int) order.getDeliveryInterval().start(), context,
                     TR -> "start of delivery interval is not equal to the tick it was generated in.");
@@ -307,6 +307,8 @@ public class TutorTests_H7_OrderGeneratorTest {
                 if (order.getLocation().equals(neighborhoodA.getLocation())) {
                     neighborhoodACount++;
                 }
+
+
             }
         }
 
@@ -337,7 +339,7 @@ public class TutorTests_H7_OrderGeneratorTest {
         int foodACount = 0;
         int foodCCount = 0;
 
-        for (int i = 0; i <= lastTick; i++) {
+        for (int i = 0; i <= lastTick; i += deliveryInterval) {
             for (ConfirmedOrder order : generator.generateOrders(i)) {
 
                 assertTrue(order.getFoodList().size() < 10, context,
@@ -402,7 +404,7 @@ public class TutorTests_H7_OrderGeneratorTest {
             .add("seed", seed)
             .build();
 
-        for (int i = 0; i <= lastTick; i++) {
+        for (int i = 0; i <= lastTick; i += deliveryInterval) {
             List<ConfirmedOrder> orders = generator.generateOrders(i);
             for (int j = 0; j < 10; j++) {
                 assertEquals(orders, generator.generateOrders(i), context,
