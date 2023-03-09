@@ -64,7 +64,12 @@ class VehicleManagerImpl implements VehicleManager {
     }
 
     private Set<AbstractOccupied<?>> getAllOccupied() {
-        return crash(); // TODO: H6.2 - remove if implemented
+        Set<AbstractOccupied<?>> allOccupied = new HashSet<>();
+
+        allOccupied.addAll(occupiedNodes.values());
+        allOccupied.addAll(occupiedEdges.values());
+
+        return Collections.unmodifiableSet(allOccupied);
     }
 
     private OccupiedNodeImpl<? extends Region.Node> getOccupiedNode(Location location) {
@@ -98,7 +103,37 @@ class VehicleManagerImpl implements VehicleManager {
 
     @Override
     public <C extends Region.Component<C>> AbstractOccupied<C> getOccupied(C component) {
-        return crash(); // TODO: H6.3 - remove if implemented
+        if(component == null){
+            throw new NullPointerException("Component is null!");
+        }
+
+        else if (component instanceof Region.Node){
+            @SuppressWarnings("unchecked")
+            AbstractOccupied<C> returnNode = (AbstractOccupied<C>) occupiedNodes.get(component);
+
+            if(returnNode != null){
+                return returnNode;
+            }
+            else{
+                throw new IllegalArgumentException("Could not find occupied node for " + component.toString());
+            }
+        }
+
+        else if(component instanceof Region.Edge){
+            @SuppressWarnings("unchecked")
+            AbstractOccupied<C> returnEdge = (AbstractOccupied<C>) occupiedEdges.get(component);
+
+            if(returnEdge != null){
+                return returnEdge;
+            }
+            else{
+                throw new IllegalArgumentException("Could not find occupied edge for " + component.toString());
+            }
+        }
+
+        else{
+            throw new IllegalArgumentException("Component is not of recognized subtype: " + component.getClass().getName());
+        }
     }
 
     @Override
