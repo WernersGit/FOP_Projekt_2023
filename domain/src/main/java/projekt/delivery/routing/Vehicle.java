@@ -99,7 +99,7 @@ public interface Vehicle extends Comparable<Vehicle> {
         Collection<ConfirmedOrder> orders = this.getOrders();
         double weight = 0;
 
-        for (ConfirmedOrder o: orders) {
+        for(ConfirmedOrder o: orders){
             weight += o.getWeight();
         }
 

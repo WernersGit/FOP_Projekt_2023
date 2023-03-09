@@ -31,11 +31,36 @@ class VehicleManagerImpl implements VehicleManager {
     }
 
     private Map<Region.Node, OccupiedNodeImpl<? extends Region.Node>> toOccupiedNodes(Collection<Region.Node> nodes) {
-        return crash(); // TODO: H6.1 - remove if implemented
+        Map<Region.Node, OccupiedNodeImpl<? extends Region.Node>> occupiedNodes = new HashMap<>();
+
+        for(Region.Node node : nodes){
+            OccupiedNodeImpl<? extends Region.Node> occupiedNode;
+
+            if(node instanceof Region.Restaurant){
+                occupiedNode = new OccupiedRestaurantImpl((Region.Restaurant) node, this);
+            }
+            else if(node instanceof Region.Neighborhood){
+                occupiedNode = new OccupiedNeighborhoodImpl((Region.Neighborhood) node, this);
+            }
+            else{
+                occupiedNode = new OccupiedNodeImpl<>(node, this);
+            }
+
+            occupiedNodes.put(node, occupiedNode);
+        }
+
+        return Collections.unmodifiableMap(occupiedNodes);
     }
 
     private Map<Region.Edge, OccupiedEdgeImpl> toOccupiedEdges(Collection<Region.Edge> edges) {
-        return crash(); // TODO: H6.1 - remove if implemented
+        Map<Region.Edge, OccupiedEdgeImpl> occupiedEdges = new HashMap<>();
+
+        for(Region.Edge edge : edges){
+            OccupiedEdgeImpl occupiedEdge = new OccupiedEdgeImpl(edge, this);
+            occupiedEdges.put(edge, occupiedEdge);
+        }
+
+        return occupiedEdges;
     }
 
     private Set<AbstractOccupied<?>> getAllOccupied() {
