@@ -146,7 +146,17 @@ class VehicleManagerImpl implements VehicleManager {
 
     @Override
     public OccupiedRestaurant getOccupiedRestaurant(Region.Node node) {
-        return crash(); // TODO: H6.4- remove if implemented
+        if(node == null){
+            throw new NullPointerException("Node is null!");
+        }
+
+        Occupied occupied = occupiedNodes.get(node);
+
+        if(!(occupied instanceof OccupiedRestaurant) || !occupiedNodes.containsKey(node)){
+            throw new IllegalArgumentException("Node " + node + " is not a restaurant");
+        }
+
+        return (OccupiedRestaurant) occupied;
     }
 
     @Override
@@ -159,7 +169,16 @@ class VehicleManagerImpl implements VehicleManager {
 
     @Override
     public OccupiedNeighborhood getOccupiedNeighborhood(Region.Node node) {
-        return crash(); // TODO: H6.4 - remove if implemented
+        if(node == null){
+            throw new NullPointerException("Node is null!");
+        }
+
+        Occupied occupied = occupiedNodes.get(node);
+        if(!(occupied instanceof OccupiedNeighborhood) || !occupiedNodes.containsKey(node)){
+            throw new IllegalArgumentException("Node " + node + " is not a neighborhood");
+        }
+        
+        return (OccupiedNeighborhood) occupied;
     }
 
     @Override
