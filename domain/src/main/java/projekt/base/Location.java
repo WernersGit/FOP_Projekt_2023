@@ -16,6 +16,8 @@ public final class Location implements Comparable<Location> {
 
     private final int x;
     private final int y;
+    
+    private int hashForLocation = 0;
 
     /**
      * Instantiates a new {@link Location} object using {@code x} and {@code y} as coordinates.
