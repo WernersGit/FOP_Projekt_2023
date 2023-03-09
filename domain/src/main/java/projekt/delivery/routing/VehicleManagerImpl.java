@@ -177,7 +177,7 @@ class VehicleManagerImpl implements VehicleManager {
         if(!(occupied instanceof OccupiedNeighborhood) || !occupiedNodes.containsKey(node)){
             throw new IllegalArgumentException("Node " + node + " is not a neighborhood");
         }
-        
+
         return (OccupiedNeighborhood) occupied;
     }
 

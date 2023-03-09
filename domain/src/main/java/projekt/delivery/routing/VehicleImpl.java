@@ -61,16 +61,25 @@ class VehicleImpl implements Vehicle {
 
     @Override
     public void moveQueued(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
-        if (this.vehicleManager.occupiedNodes.containsValue(node) && this.moveQueue.size() == 1)
-            throw new IllegalArgumentException();
+        Region.Node current = startingNode.getComponent();
 
-        ArrayDeque<Region.Node> nodeDeque = new ArrayDeque<>();
-        nodeDeque.addFirst(this.moveQueue.peekLast().nodes().getLast());
-        nodeDeque.addLast(node);
-        PathImpl path = new PathImpl(nodeDeque, arrivalAction);
+        if(node.equals(current)){
+            throw new IllegalArgumentException("Vehicle is already on the destination node");
+        }
 
+        PathCalculator pathCalculator = vehicleManager.getPathCalculator();
+        Deque<Region.Node> path;
 
-        this.moveQueue.addLast(path);
+        if(moveQueue.isEmpty()){
+            path = pathCalculator.getPath(current, node);
+        }
+        else{
+            Region.Node lastNode = moveQueue.peekLast().nodes().getLast();
+            path = pathCalculator.getPath(lastNode, node);
+        }
+
+        PathImpl pathImpl = new PathImpl(path, arrivalAction);
+        moveQueue.addLast(pathImpl);
     }
 
     @Override
