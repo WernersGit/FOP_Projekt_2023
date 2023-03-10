@@ -22,20 +22,28 @@ public class AmountDeliveredRater implements Rater {
     private final double factor;
     double totalOrders;
     double undeliveredOrders;
+    double deliveredOrders;
 
     private AmountDeliveredRater(double factor) {
         this.factor = factor;
     }
 
     @Override
+
+
     public double getScore() {
-
         double score;
-        if (0 <= undeliveredOrders && undeliveredOrders < totalOrders * (1 - factor))
-            score = 1 - undeliveredOrders / (totalOrders * (1 - factor));
-        else score = 0;
 
-        return score;
+        if (0 < undeliveredOrders && undeliveredOrders < totalOrders * (1 - factor)) {
+            score = 1 - undeliveredOrders / (totalOrders * (1 - factor));
+        }
+        else if(deliveredOrders > 0){
+            score = 1 - undeliveredOrders / (totalOrders * (1 - factor));
+        }
+        else{
+            score = 0;
+        }
+        return score < 0 ? 0 : score;
     }
 
     @Override
@@ -45,18 +53,18 @@ public class AmountDeliveredRater implements Rater {
 
     @Override
     public void onTick(List<Event> events, long tick) {
-
-        totalOrders = events.stream()
-                .filter(x -> x instanceof OrderReceivedEvent)
-                .toList()
-                .size();
-
-        undeliveredOrders = events.stream()
-                .filter(x -> x instanceof OrderReceivedEvent)
-                .map(y -> (OrderReceivedEvent) y)
-                .filter(z -> z.getOrder() == null)
-                .toList().size();
-
+        for (Event event : events) {
+            if (event instanceof DeliverOrderEvent) {
+                deliveredOrders++;
+                if(undeliveredOrders > 0){
+                    undeliveredOrders--;
+                }
+            }
+            else if (event instanceof OrderReceivedEvent) {
+                totalOrders++;
+                undeliveredOrders++;
+            }
+        }
     }
 
     /**
