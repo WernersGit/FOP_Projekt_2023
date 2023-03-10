@@ -49,14 +49,33 @@ class VehicleImpl implements Vehicle {
         this.occupied = occupied;
     }
 
+
     @Override
     public void moveDirect(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
+        PathImpl tmp;
+
+        if(moveQueue.size() > 0){
+            tmp = moveQueue.getFirst();
+            System.out.println(tmp);
+        }
+        else{
+            tmp = null;
+        }
+
         moveQueue.clear();
-        if (this.getOccupied().getComponent().equals(node))
+        checkMoveToNode(node);
+
+        if(getOccupied().getComponent().equals(node)) {
             throw new IllegalArgumentException();
-        else moveQueued(node, arrivalAction);
-
-
+        }
+        else if(getOccupied().getComponent() instanceof Region.Edge){
+            tmp.nodes.removeLast();
+            moveQueue.add(tmp);
+            moveQueued(node, arrivalAction);
+        }
+        else{
+            moveQueued(node, arrivalAction);
+        }
     }
 
     @Override
