@@ -2,6 +2,9 @@ package projekt.base;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -17,8 +20,7 @@ public final class Location implements Comparable<Location> {
 
     private final int x;
     private final int y;
-    
-    private int hashForLocation = 0;
+
 
     /**
      * Instantiates a new {@link Location} object using {@code x} and {@code y} as coordinates.
@@ -86,35 +88,7 @@ public final class Location implements Comparable<Location> {
 
     @Override
     public int hashCode() {
-        
-        if(hashForLocation == 0){
-            /**
-             /**
-             * A tuple for the x- and y-coordinates of a point.
-             */
-            class HashForLocation{
-                private final int x;
-                private final int y;
-
-                /**
-                 * Instantiates a new {@link HashForLocation} object using {@code x} and {@code y} as coordinates.
-                 *
-                 * @param x the x coordinate
-                 * @param y the y coordinate
-                 */
-                public HashForLocation(int x, int y) {
-                    this.x = x;
-                    this.y = y;
-                }
-            }
-
-
-            hashForLocation =  Objects.hashCode(new HashForLocation(x, y));
-            return hashForLocation;
-        }
-        else{
-            return hashForLocation;
-        }
+        return (Integer.toString(x) + Integer.toString(y)).hashCode();
     }
 
     @Override

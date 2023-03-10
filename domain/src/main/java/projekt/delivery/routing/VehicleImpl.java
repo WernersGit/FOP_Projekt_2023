@@ -56,7 +56,6 @@ class VehicleImpl implements Vehicle {
 
         if(moveQueue.size() > 0){
             tmp = moveQueue.getFirst();
-            System.out.println(tmp);
         }
         else{
             tmp = null;
