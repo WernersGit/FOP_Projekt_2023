@@ -1,7 +1,9 @@
 package projekt.delivery.rating;
 
+import org.w3c.dom.ls.LSOutput;
 import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
+import projekt.delivery.event.OrderReceivedEvent;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.simulation.Simulation;
 
@@ -37,47 +39,88 @@ public class InTimeRater implements Rater {
     public double getScore() {
         double score;
 
+        System.out.println("maxTotalTicksOff: "+maxTotalTicksOff);
+        System.out.println("actualTotalTicksOff: "+actualTotalTicksOff);
+
         if (maxTotalTicksOff == 0){
             score = 0;
         }
         else {
             score = 1- (actualTotalTicksOff/maxTotalTicksOff);
         }
+
+        System.out.println("score: "+score);
+
         return score < 0 ? 0 : score;
     }
 
     @Override
     public void onTick(List<Event> events, long tick) {
-        double totalTicksOff = 0;
+      /*  System.out.println("redefine");*/
         double maxOffSum = 0;
+        double actualOffSum = 0;
+
+
 
         List<DeliverOrderEvent> orders = events.stream()
                 .filter(x -> x instanceof DeliverOrderEvent)
                 .map(y -> (DeliverOrderEvent) y).toList();
 
-        for (int i = 0; i < orders.size(); i++) maxOffSum += maxTicksOff;
+        int numberOfOrders = orders.size();
+        maxOffSum += maxTicksOff*numberOfOrders;
+
+
+        List<OrderReceivedEvent> unfulfilledOrders = events.stream()
+                .filter(x -> x instanceof OrderReceivedEvent)
+                .map(y -> (OrderReceivedEvent) y)
+                .filter(z -> z.getOrder().getActualDeliveryTick() == 0).toList();
+
+        int numberOfUnfulfilledOrders = unfulfilledOrders.size();
+
+     /*   System.out.println("Events: "+ events.stream().toList());
+        System.out.println("Orders: "+orders);
+        System.out.println("unfulfilledOrders: "+unfulfilledOrders);
+        System.out.println("numberOfOrders: "+numberOfOrders);
+        System.out.println("numberOfUnfulfilledOrders: "+numberOfUnfulfilledOrders);*/
+
+        maxOffSum += numberOfUnfulfilledOrders * maxTicksOff;
+        actualOffSum += numberOfUnfulfilledOrders * maxTicksOff;
 
         for (DeliverOrderEvent doe: orders) {
 
-            if (doe.getOrder() == null) {
-                totalTicksOff += maxTicksOff;
-                continue;
-            }
-            long latestDelivery = doe.getOrder().getDeliveryInterval().end();
-            long earliestDelivery = doe.getOrder().getDeliveryInterval().start();
+
+            long latestDelivery = doe.getOrder().getDeliveryInterval().end() + ignoredTicksOff;
+            long earliestDelivery = doe.getOrder().getDeliveryInterval().start() - ignoredTicksOff;
             long actualDelivery = doe.getOrder().getActualDeliveryTick();
-            if (actualDelivery > latestDelivery + ignoredTicksOff) {
 
-                totalTicksOff += Math.max(actualDelivery - latestDelivery - ignoredTicksOff, maxTicksOff);
+            if (actualDelivery > latestDelivery) {
+
+                actualOffSum += Math.min(actualDelivery - latestDelivery, maxTicksOff);
+
+             /*   System.out.println("to Late");
+                System.out.println("actualDelivery: " + actualDelivery);
+                System.out.println("earliestDelivery: " + earliestDelivery);
+                System.out.println("maxTicksOff: " + maxTicksOff);
+                System.out.println("TotalTicksOff: " + actualTotalTicksOff);*/
+
                 continue;
             }
-            if (actualDelivery < earliestDelivery - ignoredTicksOff) {
-                totalTicksOff += -1*(Math.max(actualDelivery - earliestDelivery - ignoredTicksOff, maxTicksOff));
-            }
-        }
+            if (actualDelivery < earliestDelivery) {
+                actualOffSum += Math.min(earliestDelivery - actualDelivery, maxTicksOff);
 
-        actualTotalTicksOff = totalTicksOff;
+
+             /*   System.out.println("to early");
+                System.out.println("actualDelivery: "+actualDelivery);
+                System.out.println("earliestDelivery: "+earliestDelivery);
+                System.out.println("maxTicksOff: "+maxTicksOff);
+                System.out.println("TotalTicksOff: "+actualTotalTicksOff);*/
+            }
+
+
+        }
+        //Problem liegt im Zählen von maxTotalOff
         maxTotalTicksOff = maxOffSum;
+        actualTotalTicksOff = actualOffSum;
     }
 
     /**
