@@ -37,11 +37,13 @@ public class InTimeRater implements Rater {
     public double getScore() {
         double score;
 
-        if (maxTotalTicksOff == 0) score = 0;
+        if (maxTotalTicksOff == 0){
+            score = 0;
+        }
         else {
             score = 1- (actualTotalTicksOff/maxTotalTicksOff);
         }
-        return score;
+        return score < 0 ? 0 : score;
     }
 
     @Override
