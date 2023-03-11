@@ -1,8 +1,12 @@
 package projekt.delivery.generator;
 
+import projekt.base.Location;
+import projekt.base.TickInterval;
 import projekt.delivery.routing.ConfirmedOrder;
+import projekt.delivery.routing.Region;
 import projekt.delivery.routing.VehicleManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -15,9 +19,15 @@ import static org.tudalgo.algoutils.student.Student.crash;
  *
  * To create a new {@link FridayOrderGenerator} use {@code FridayOrderGenerator.Factory.builder()...build();}.
  */
-public class FridayOrderGenerator implements OrderGenerator {
+public class  FridayOrderGenerator implements OrderGenerator {
 
     private final Random random;
+    private final int orderCount;
+    private final VehicleManager vehicleManager;
+    private final int deliveryInterval;
+    private final double maxWeight;
+    private final double variance;
+    private final long lastTick;
 
     /**
      * Creates a new {@link FridayOrderGenerator} with the given parameters.
@@ -32,12 +42,74 @@ public class FridayOrderGenerator implements OrderGenerator {
      */
     private FridayOrderGenerator(int orderCount, VehicleManager vehicleManager, int deliveryInterval, double maxWeight, double variance, long lastTick, int seed) {
         random = seed < 0 ? new Random() : new Random(seed);
-        crash(); // TODO: H7.1 - remove if implemented
+        this.orderCount = orderCount;
+        this.vehicleManager = vehicleManager;
+        this.deliveryInterval = deliveryInterval;
+        this.maxWeight = maxWeight;
+        this.variance = variance;
+        this.lastTick = lastTick;
     }
 
     @Override
     public List<ConfirmedOrder> generateOrders(long tick) {
-        return crash(); // TODO: H7.1 - remove if implemented
+        if (tick < 0) {
+            throw new IndexOutOfBoundsException("Tick value cannot be negative.");
+        }
+
+        if(tick > lastTick){
+            return new ArrayList<>();
+        }
+
+
+        /**
+        double expectedValue = (double) lastTick / (double) orderCount;
+        int count = (int) Math.round(random.nextGaussian(0, variance));
+
+        count = Math.max(0, count);
+        count = Math.min(orderCount, count);*/
+
+        int count = 0;
+
+        for (int i = 0; i <= lastTick; i++) {
+            double expectedValue = 1 / Math.sqrt(variance);
+            double z = random.nextGaussian(expectedValue, variance);
+            count = (int) Math.round(z);
+        }
+
+
+        List<ConfirmedOrder> orders = new ArrayList<>();
+
+        for(int i = 0; i < count; i++){
+
+            Location location = vehicleManager.getOccupiedNeighborhoods()
+                    .stream()
+                    .skip(random.nextInt(vehicleManager.getOccupiedNeighborhoods().size()))
+                    .findFirst()
+                    .get().getComponent().getLocation();
+
+            VehicleManager.OccupiedRestaurant restaurant = vehicleManager.getOccupiedRestaurants()
+                    .stream()
+                    .skip(random.nextInt(vehicleManager.getOccupiedRestaurants().size()))
+                    .findFirst()
+                    .get();
+
+            TickInterval deliveryIntervalTick = new TickInterval(tick, deliveryInterval + tick);
+
+            List<String> foodList = new ArrayList<>();
+            int foodCount = random.nextInt(9) + 1;
+
+            for(int j = 0; j < foodCount; j++){
+                foodList.add(restaurant.getComponent().getAvailableFood()
+                        .get(random.nextInt(restaurant.getComponent().getAvailableFood().size())));
+            }
+
+            double weight = random.nextDouble() * maxWeight;
+
+            ConfirmedOrder order = new ConfirmedOrder(location, restaurant, deliveryIntervalTick, foodList, weight);
+            orders.add(order);
+        }
+
+        return orders;
     }
 
     /**

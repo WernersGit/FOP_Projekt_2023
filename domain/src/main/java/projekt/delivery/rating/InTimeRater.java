@@ -36,12 +36,16 @@ public class InTimeRater implements Rater {
     @Override
     public double getScore() {
         double score;
-
-        if (maxTotalTicksOff == 0){
+        if (maxTotalTicksOff == 0) {
             score = 0;
-        }
-        else {
-            score = 1- (actualTotalTicksOff/maxTotalTicksOff);
+        } else {
+            if (actualTotalTicksOff > maxTicksOff) {
+                score = 0;
+            } else if (maxTotalTicksOff == ignoredTicksOff) {
+                score = 1;
+            } else {
+                score = 1 - (actualTotalTicksOff / maxTotalTicksOff);
+            }
         }
         return score < 0 ? 0 : score;
     }
@@ -55,29 +59,37 @@ public class InTimeRater implements Rater {
                 .filter(x -> x instanceof DeliverOrderEvent)
                 .map(y -> (DeliverOrderEvent) y).toList();
 
-        for (int i = 0; i < orders.size(); i++) maxOffSum += maxTicksOff;
+        maxOffSum = maxTicksOff * orders.size();
 
-        for (DeliverOrderEvent doe: orders) {
+        for (DeliverOrderEvent doe : orders) {
+            ConfirmedOrder order = doe.getOrder();
 
-            if (doe.getOrder() == null) {
+            if (order == null) {
                 totalTicksOff += maxTicksOff;
                 continue;
             }
-            long latestDelivery = doe.getOrder().getDeliveryInterval().end();
-            long earliestDelivery = doe.getOrder().getDeliveryInterval().start();
-            long actualDelivery = doe.getOrder().getActualDeliveryTick();
-            if (actualDelivery > latestDelivery + ignoredTicksOff) {
 
-                totalTicksOff += Math.max(actualDelivery - latestDelivery - ignoredTicksOff, maxTicksOff);
-                continue;
+            long latestDelivery = order.getDeliveryInterval().end();
+            long earliestDelivery = order.getDeliveryInterval().start();
+            long actualDelivery = order.getActualDeliveryTick() == -1 ? tick : order.getActualDeliveryTick();
+            long ticksOff;
+
+            if (actualDelivery >= latestDelivery + ignoredTicksOff) {
+                ticksOff = Math.min(maxTicksOff, actualDelivery - latestDelivery - ignoredTicksOff);
             }
-            if (actualDelivery < earliestDelivery - ignoredTicksOff) {
-                totalTicksOff += -1*(Math.max(actualDelivery - earliestDelivery - ignoredTicksOff, maxTicksOff));
+            else if (actualDelivery <= earliestDelivery - ignoredTicksOff) {
+                ticksOff = Math.min(maxTicksOff, earliestDelivery + actualDelivery - ignoredTicksOff);
             }
+            else {
+                ticksOff = 0;
+            }
+
+            totalTicksOff += ticksOff;
         }
 
         actualTotalTicksOff = totalTicksOff;
-        maxTotalTicksOff = maxOffSum;
+        maxTotalTicksOff = maxOffSum + maxTicksOff * orders.size();
+
     }
 
     /**
