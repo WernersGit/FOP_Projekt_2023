@@ -2,6 +2,7 @@ package projekt.runner;
 
 import projekt.delivery.archetype.ProblemArchetype;
 import projekt.delivery.archetype.ProblemGroup;
+import projekt.delivery.generator.OrderGenerator;
 import projekt.delivery.service.DeliveryService;
 import projekt.delivery.simulation.BasicDeliverySimulation;
 import projekt.delivery.simulation.Simulation;
@@ -10,6 +11,7 @@ import projekt.runner.handler.ResultHandler;
 import projekt.runner.handler.SimulationFinishedHandler;
 import projekt.runner.handler.SimulationSetupHandler;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.tudalgo.algoutils.student.Student.crash;
@@ -33,7 +35,15 @@ public class RunnerImpl implements Runner {
                                                                 SimulationConfig simulationConfig,
                                                                 DeliveryService.Factory deliveryServiceFactory) {
 
-        return crash(); // TODO: H10.1 - remove if implemented
+        Map<ProblemArchetype, Simulation> simulations = new HashMap<>();
+        for (ProblemArchetype archetype : problemGroup.problems()) {
+            BasicDeliverySimulation simulation = new BasicDeliverySimulation(
+                    simulationConfig, archetype.raterFactoryMap(),
+                    deliveryServiceFactory.create(archetype.vehicleManager()),
+                    archetype.orderGeneratorFactory());
+            simulations.put(archetype, simulation);
+        }
+        return simulations;
     }
 
 }
