@@ -61,13 +61,15 @@ public class FridayOrderGenerator implements OrderGenerator {
 
             List<ConfirmedOrder> orders = new ArrayList<>();
 
-            //long tick = Math.round(random.nextGaussian(standardDeviation, lastTick));
-            //tick = Math.min(tick, lastTick);
-            //tick = Math.max(tick, 0);
-
-            long mean = lastTick / 2;
+            //Die Verteilung sieht super aus, findet euer test aber nicht
+            /**long mean = lastTick / 2;
             long randomValue = Math.round(random.nextGaussian() * standardDeviation) + mean;
-            long tick = Math.max(0, Math.min(lastTick, Math.round(randomValue)));
+            long tick = Math.max(0, Math.min(lastTick, Math.round(randomValue)));*/
+
+            long tick = 0;
+            do{
+                tick = Math.round(random.nextGaussian(0.5, standardDeviation) * lastTick);
+            }while(tick > lastTick || tick < 0);
 
             Location location = vehicleManager.getOccupiedNeighborhoods()
                     .stream()
