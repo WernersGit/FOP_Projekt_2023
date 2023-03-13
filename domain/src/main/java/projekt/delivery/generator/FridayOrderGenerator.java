@@ -5,10 +5,7 @@ import projekt.base.TickInterval;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.routing.VehicleManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
@@ -27,6 +24,7 @@ public class FridayOrderGenerator implements OrderGenerator {
     private final double maxWeight;
     private final long lastTick;
     private final double standardDeviation;
+    private final Map<Long, List<ConfirmedOrder>> calculatedOrders;
 
     /**
      * Creates a new {@link FridayOrderGenerator} with the given parameters.
@@ -47,26 +45,29 @@ public class FridayOrderGenerator implements OrderGenerator {
         this.maxWeight = maxWeight;
         this.lastTick = lastTick;
         this.standardDeviation = standardDeviation;
+        this.calculatedOrders = calculateOrders();
     }
 
-    @Override
-    public List<ConfirmedOrder> generateOrders(long tick) {
-        if (tick < 0) {
-            throw new IndexOutOfBoundsException("Tick value cannot be negative.");
+    private Map<Long, List<ConfirmedOrder>> calculateOrders(){
+
+        Map<Long, List<ConfirmedOrder>> tmp = new HashMap<>();
+
+        for(long i = 0; i <= lastTick; i++) {
+            List<ConfirmedOrder> orders = new ArrayList<>();
+            tmp.put(i, orders);
         }
 
-        if(tick > lastTick){
-            return new ArrayList<>();
-        }
+        for (int n = 0; n < orderCount; n++) {
 
+            List<ConfirmedOrder> orders = new ArrayList<>();
 
+            //long tick = Math.round(random.nextGaussian(standardDeviation, lastTick));
+            //tick = Math.min(tick, lastTick);
+            //tick = Math.max(tick, 0);
 
-        double expectedValue = (double) lastTick / (double) orderCount;
-        int count = (int) Math.round(random.nextGaussian(1/50, standardDeviation));
-
-        List<ConfirmedOrder> orders = new ArrayList<>();
-
-        for(int i = 0; i < count; i++){
+            long mean = lastTick / 2;
+            long randomValue = Math.round(random.nextGaussian() * standardDeviation) + mean;
+            long tick = Math.max(0, Math.min(lastTick, Math.round(randomValue)));
 
             Location location = vehicleManager.getOccupiedNeighborhoods()
                     .stream()
@@ -82,22 +83,47 @@ public class FridayOrderGenerator implements OrderGenerator {
 
             TickInterval deliveryIntervalTick = new TickInterval(tick, deliveryInterval + tick);
 
-            List<String> foodList = new ArrayList<>();
+
             int foodCount = random.nextInt(9) + 1;
+            List<String> foodList = new ArrayList<>(foodCount);
 
             for(int j = 0; j < foodCount; j++){
-                foodList.add(restaurant.getComponent().getAvailableFood()
-                        .get(random.nextInt(restaurant.getComponent().getAvailableFood().size())));
+                foodList.add(restaurant.getComponent().getAvailableFood().get(random.nextInt(restaurant.getComponent().getAvailableFood().size())));
             }
 
             double weight = random.nextDouble() * maxWeight;
 
             ConfirmedOrder order = new ConfirmedOrder(location, restaurant, deliveryIntervalTick, foodList, weight);
             orders.add(order);
+
+            if(tmp.get(tick).size() > 0){
+                List<ConfirmedOrder> newOrderList = tmp.get(tick);
+                newOrderList.addAll(orders);
+
+                tmp.remove(tick);
+                tmp.put(tick, newOrderList);
+            }
+            else{
+                tmp.remove(tick);
+                tmp.put(tick, orders);
+            }
         }
 
-        return orders;
+        return tmp;
     }
+
+    public List<ConfirmedOrder> generateOrders(long tick) {
+        if(tick < 0){
+            throw new IndexOutOfBoundsException("Tick value cannot be negative.");
+        }
+
+        if(tick > lastTick){
+            return new ArrayList<>();
+        }
+
+        return calculatedOrders.get(tick);
+    }
+
 
     /**
      * A {@link OrderGenerator.Factory} for creating a new {@link FridayOrderGenerator}.
