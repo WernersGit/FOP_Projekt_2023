@@ -17,20 +17,20 @@ public class IOHelper {
      * Copies the {@link ProblemArchetype} presets from the resource directory into the build directory.
      */
     public static void initProblemPresets() {
-        // problem 1
-        try (InputStream problem1 = IOHelper.class.getResourceAsStream("presets/problem1.txt");
-             BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(problem1)))) {
-            writeProblem(ProblemArchetypeIO.readProblemArchetype(reader));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        copyProblemFiles("problem1", "problem2", "problem3", "problem4");
+    }
 
-        // problem 2
-        try (InputStream problem2 = IOHelper.class.getResourceAsStream("presets/problem2.txt");
-             BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(problem2)))) {
-            writeProblem(ProblemArchetypeIO.readProblemArchetype(reader));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    /**
+     * Copies the {@link ProblemArchetype} preset with the given names from the resource directory into the build directory.
+     */
+    private static void copyProblemFiles(String... fileNames) {
+        for (String fileName : fileNames) {
+            try (InputStream problem = IOHelper.class.getResourceAsStream("presets/" + fileName + ".txt");
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(problem)))) {
+                writeProblem(ProblemArchetypeIO.readProblemArchetype(reader));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

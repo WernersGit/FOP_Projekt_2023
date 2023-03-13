@@ -77,11 +77,15 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
     private Button createStartSimulationButton() {
         Button startSimulationButton = new Button("Start Simulation");
         startSimulationButton.setOnAction((e) -> {
+            if (problems.size() == 0) {
+                throw new IllegalArgumentException("No problems selected");
+            }
+
             //store the SimulationScene
             AtomicReference<SimulationScene> simulationScene = new AtomicReference<>();
             //Execute the GUIRunner in a separate Thread to prevent it from blocking the GUI
             new Thread(() -> {
-                ProblemGroup problemGroup = new ProblemGroupImpl(problems, Arrays.stream(RatingCriteria.values()).toList());
+                ProblemGroup problemGroup = new ProblemGroupImpl(problems, problems.get(0).raterFactoryMap().keySet().stream().toList());
                 new RunnerImpl().run(
                     problemGroup,
                     new SimulationConfig(20),

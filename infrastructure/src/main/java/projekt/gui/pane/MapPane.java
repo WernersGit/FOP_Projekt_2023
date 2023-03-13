@@ -553,6 +553,9 @@ public class MapPane extends Pane {
         );
 
         setOnScroll(event -> {
+            if (event.getDeltaY() == 0) {
+                return;
+            }
             double scale = event.getDeltaY() > 0 ? SCALE_IN : SCALE_OUT;
 
             if (((transformation.getScaleX() < MIN_SCALE || transformation.getScaleY() < MIN_SCALE) && scale < 1)

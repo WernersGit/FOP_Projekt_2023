@@ -43,7 +43,7 @@ public class OrderGeneratorFactoryIO {
                         fridayBuilder.setOrderCount(Integer.parseInt(serializedOrderGenerator[1]));
                         fridayBuilder.setDeliveryInterval(Integer.parseInt(serializedOrderGenerator[2]));
                         fridayBuilder.setMaxWeight(Double.parseDouble(serializedOrderGenerator[3]));
-                        fridayBuilder.setVariance(Double.parseDouble(serializedOrderGenerator[4]));
+                        fridayBuilder.setStandardDeviation(Double.parseDouble(serializedOrderGenerator[4]));
                         fridayBuilder.setLastTick(Integer.parseInt(serializedOrderGenerator[5]));
                         if (Integer.parseInt(serializedOrderGenerator[6]) >= 0) {
                             fridayBuilder.setSeed(Integer.parseInt(serializedOrderGenerator[6]));
@@ -74,7 +74,7 @@ public class OrderGeneratorFactoryIO {
                     fridayFactory.orderCount,
                     fridayFactory.deliveryInterval,
                     Double.toString(fridayFactory.maxWeight),
-                    Double.toString(fridayFactory.variance),
+                    Double.toString(fridayFactory.standardDeviation),
                     fridayFactory.lastTick,
                     fridayFactory.seed)
                 );

@@ -5,8 +5,8 @@ import projekt.delivery.routing.ConfirmedOrder;
 import java.util.List;
 
 /**
- * A generator that creates a {@link List<ConfirmedOrder>} for any given tick.<p>
- *
+ * A generator that creates a {@link List} of {@linkplain ConfirmedOrder confirmed orders} for any given tick.<p>
+ * <p>
  * Every Implementation ensures that a call to the method {@link #generateOrders(long)} will always return the same orders
  * when given the same tick.
  */
@@ -14,8 +14,8 @@ public interface OrderGenerator {
 
     /**
      * Generates a {@link List<ConfirmedOrder>} for the given tick. Calling this method with the same parameter will always result in the same result.<p>
-     *
-     * Implementations of this method might throw an {@link IllegalArgumentException} when given a negative tick.
+     * <p>
+     * Implementations of this method might throw an {@link IndexOutOfBoundsException} when given a negative tick.
      *
      * @param tick the tick to generate orders for
      * @return the generated orders
@@ -29,6 +29,7 @@ public interface OrderGenerator {
 
         /**
          * Creates a new {@link OrderGenerator} instance.
+         *
          * @return The new {@link OrderGenerator}.
          */
         OrderGenerator create();
@@ -41,6 +42,7 @@ public interface OrderGenerator {
 
         /**
          * Constructs a new {@link OrderGenerator.Factory}.
+         *
          * @return The constructed {@link OrderGenerator.Factory}.
          */
         Factory build();
