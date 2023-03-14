@@ -3,6 +3,7 @@ package projekt.runner;
 import projekt.delivery.archetype.ProblemArchetype;
 import projekt.delivery.archetype.ProblemGroup;
 import projekt.delivery.generator.OrderGenerator;
+import projekt.delivery.rating.RatingCriteria;
 import projekt.delivery.service.DeliveryService;
 import projekt.delivery.simulation.BasicDeliverySimulation;
 import projekt.delivery.simulation.Simulation;
@@ -11,6 +12,7 @@ import projekt.runner.handler.ResultHandler;
 import projekt.runner.handler.SimulationFinishedHandler;
 import projekt.runner.handler.SimulationSetupHandler;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +29,29 @@ public class RunnerImpl implements Runner {
                     SimulationFinishedHandler simulationFinishedHandler,
                     ResultHandler resultHandler) {
 
-        crash(); // TODO: H10.2 - remove if implemented
+        Map<ProblemArchetype, Simulation> simulations = createSimulations(problemGroup, simulationConfig, deliveryServiceFactory);
+
+        for (ProblemArchetype problem : problemGroup.problems()) {
+            int runs = 0;
+            Map<RatingCriteria, Double> ratingsSum = new EnumMap<>(RatingCriteria.class);
+            while (runs < simulationRuns) {
+                Simulation simulation = simulations.get(problem);
+                simulationSetupHandler.accept(simulation, problem, runs);
+                simulation.runSimulation(simulationConfig.getMillisecondsPerTick());
+                simulationFinishedHandler.accept(simulation, problem);
+                for (RatingCriteria ratingCriteria : RatingCriteria.values()) {
+                    Double ratingSum = ratingsSum.getOrDefault(ratingCriteria, 0.0);
+                    ratingsSum.put(ratingCriteria, ratingSum + simulation.getRatingForCriterion(ratingCriteria));
+                }
+                runs++;
+            }
+            Map<RatingCriteria, Double> ratingsAvg = new EnumMap<>(RatingCriteria.class);
+            for (RatingCriteria ratingCriteria : RatingCriteria.values()) {
+                double avgRating = ratingsSum.getOrDefault(ratingCriteria, 0.0) / simulationRuns;
+                ratingsAvg.put(ratingCriteria, avgRating);
+            }
+            resultHandler.accept(ratingsAvg);
+        }
     }
 
     @Override

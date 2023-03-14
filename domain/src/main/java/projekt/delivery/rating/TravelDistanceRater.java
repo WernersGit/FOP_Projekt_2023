@@ -11,6 +11,7 @@ import projekt.delivery.simulation.Simulation;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,6 +66,8 @@ public class TravelDistanceRater implements Rater {
                 return 1.0 - (actualDistance / factorizedWorstDistance);
             }
         }
+
+
     }
 
     @Override
@@ -74,13 +77,50 @@ public class TravelDistanceRater implements Rater {
 
     @Override
     public void onTick(List<Event> events, long tick) {
+        actualDistance = 0;
+
+        for (Event event : events) {
+            if (event instanceof ArrivedAtNodeEvent) {
+                actualDistance += ((ArrivedAtNodeEvent) event).getLastEdge().getDuration() > 0 ? ((ArrivedAtNodeEvent) event).getLastEdge().getDuration() : 0;
+            }
+            else if (event instanceof DeliverOrderEvent) {
+                //((DeliverOrderEvent) event).getVehicle().getPaths().
+            }
+        }
+
+        List<Long> worstDistancesStream = events.stream()
+                .filter(x -> x instanceof DeliverOrderEvent)
+                .map(y -> (DeliverOrderEvent) y)
+                .filter(x -> x.getOrder() != null)
+                .map(z -> {
+                    Region.Restaurant restaurant = z.getOrder().getRestaurant().getComponent();
+                    Region.Node restaurantNode = region.getNode(restaurant.getLocation());
+                    List<Region.Node> path = pathCalculator.getPath(restaurantNode, z.getNode()).stream().toList();
+                    long distance = 0;
+
+                    for (int i = 0; i < path.size(); i++) {
+                        if (i == 0) {
+                            assert restaurantNode != null;
+                            distance += Objects.requireNonNull(region.getEdge(restaurantNode, path.get(i))).getDuration();
+                        } else {
+                            distance += Objects.requireNonNull(region.getEdge(path.get(i), path.get(i - 1))).getDuration();
+                        }
+                    }
+                    return distance;
+                }).toList();
+
+        for (long a : worstDistancesStream) {
+            worstDistance += a;
+        }
+    }
+    public void onTickOld(List<Event> events, long tick) {
         double distanceSum = 0.0;
 
         List<Long> distances = events.stream()
                 .filter(x -> x instanceof ArrivedAtNodeEvent)
                 .map(y -> (ArrivedAtNodeEvent) y)
                 .map(x -> x.getLastEdge().getDuration())
-                .collect(Collectors.toList());
+                .toList();
 
         for (Long n : distances) {
             distanceSum += n;
@@ -98,13 +138,14 @@ public class TravelDistanceRater implements Rater {
 
                     for (int i = 0; i < path.size(); i++) {
                         if (i == 0) {
-                            distance += region.getEdge(restaurantNode, path.get(i)).getDuration();
+                            assert restaurantNode != null;
+                            distance += Objects.requireNonNull(region.getEdge(restaurantNode, path.get(i))).getDuration();
                         } else {
-                            distance += region.getEdge(path.get(i), path.get(i - 1)).getDuration();
+                            distance += Objects.requireNonNull(region.getEdge(path.get(i), path.get(i - 1))).getDuration();
                         }
                     }
                     return distance;
-                }).collect(Collectors.toList());
+                }).toList();
 
         for (long a : worstDistancesStream) {
             distanceSum += a;
@@ -113,6 +154,8 @@ public class TravelDistanceRater implements Rater {
         worstDistance = distanceSum;
         actualDistance = distanceSum - worstDistancesStream.stream().mapToLong(Long::longValue).sum();
     }
+
+
 
 
     /**

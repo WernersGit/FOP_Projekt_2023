@@ -1,7 +1,9 @@
 package projekt.delivery.rating;
 
 import projekt.delivery.event.DeliverOrderEvent;
+import projekt.delivery.event.OrderReceivedEvent;
 import projekt.delivery.event.Event;
+import projekt.delivery.generator.OrderGenerator;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.simulation.Simulation;
 
@@ -36,60 +38,68 @@ public class InTimeRater implements Rater {
     @Override
     public double getScore() {
         double score;
+
         if (maxTotalTicksOff == 0) {
             score = 0;
         } else {
-            if (actualTotalTicksOff > maxTicksOff) {
-                score = 0;
-            } else if (maxTotalTicksOff == ignoredTicksOff) {
-                score = 1;
-            } else {
-                score = 1 - (actualTotalTicksOff / maxTotalTicksOff);
-            }
+            score = 1 - (actualTotalTicksOff / maxTotalTicksOff);
         }
+
         return score < 0 ? 0 : score;
     }
 
     @Override
     public void onTick(List<Event> events, long tick) {
         double totalTicksOff = 0;
-        double maxOffSum = 0;
 
-        List<DeliverOrderEvent> orders = events.stream()
-                .filter(x -> x instanceof DeliverOrderEvent)
-                .map(y -> (DeliverOrderEvent) y).toList();
+        List<Event> orders = events.stream()
+                .filter(x -> x instanceof DeliverOrderEvent || x instanceof OrderReceivedEvent).toList();
 
-        maxOffSum = maxTicksOff * orders.size();
+        maxTotalTicksOff = maxTicksOff * orders.size();
 
-        for (DeliverOrderEvent doe : orders) {
-            ConfirmedOrder order = doe.getOrder();
+        int counterRecieved = 0;
+        int counterDelivered = 0;
 
-            if (order == null) {
+        for (Event doe : orders) {
+
+            ConfirmedOrder order;
+
+            if(doe instanceof DeliverOrderEvent){ //ausgeliefert
+                counterDelivered++;
+                order = ((DeliverOrderEvent)doe).getOrder();
+
+                if(order == null){
+                    //totalTicksOff += maxTicksOff; //könnte sinnvoll sein, steht aber nirgends
+                    continue;
+                }
+
+                long deliveryBegin = order.getDeliveryInterval().start();
+                long deliveryEnd = order.getDeliveryInterval().end();
+                long actualTime = order.getActualDeliveryTick() == -1 ? tick : order.getActualDeliveryTick();
+
+                if(actualTime > deliveryEnd){
+                    long tmpTooLate = Math.min(maxTicksOff, actualTime - (deliveryEnd + ignoredTicksOff));
+                    totalTicksOff += tmpTooLate > 0 ? tmpTooLate : 0;
+                }
+                else if(actualTime < deliveryBegin){
+                    long tmpTooEarly = Math.min(maxTicksOff, deliveryBegin - (actualTime + ignoredTicksOff));
+                    totalTicksOff += tmpTooEarly > 0 ? tmpTooEarly : 0;
+                }
+
+            }
+            else{ //aufgenommen und noch nicht ausgeliefert
+                counterRecieved++;
                 totalTicksOff += maxTicksOff;
-                continue;
             }
-
-            long latestDelivery = order.getDeliveryInterval().end();
-            long earliestDelivery = order.getDeliveryInterval().start();
-            long actualDelivery = order.getActualDeliveryTick() == -1 ? tick : order.getActualDeliveryTick();
-            long ticksOff;
-
-            if (actualDelivery >= latestDelivery + ignoredTicksOff) {
-                ticksOff = Math.min(maxTicksOff, actualDelivery - latestDelivery - ignoredTicksOff);
-            }
-            else if (actualDelivery <= earliestDelivery - ignoredTicksOff) {
-                ticksOff = Math.min(maxTicksOff, earliestDelivery + actualDelivery - ignoredTicksOff);
-            }
-            else {
-                ticksOff = 0;
-            }
-
-            totalTicksOff += ticksOff;
         }
 
-        actualTotalTicksOff = totalTicksOff;
-        maxTotalTicksOff = maxOffSum + maxTicksOff * orders.size();
 
+        if(counterDelivered == 0 & counterRecieved > 0){
+            actualTotalTicksOff = maxTotalTicksOff;
+        }
+        else{
+            actualTotalTicksOff = totalTicksOff;
+        }
     }
 
     /**
