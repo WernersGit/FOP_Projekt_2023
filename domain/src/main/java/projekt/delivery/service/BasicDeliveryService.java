@@ -2,6 +2,7 @@ package projekt.delivery.service;
 
 import projekt.delivery.event.Event;
 import projekt.delivery.routing.ConfirmedOrder;
+import projekt.delivery.routing.Region;
 import projekt.delivery.routing.VehicleManager;
 
 import java.util.ArrayList;
@@ -25,7 +26,45 @@ public class BasicDeliveryService extends AbstractDeliveryService {
 
     @Override
     protected List<Event> tick(long currentTick, List<ConfirmedOrder> newOrders) {
-        return crash(); // TODO: H9.1 - remove if implemented
+        return crash(); //TODO
+
+        /**List<Event> events = vehicleManager.tick(currentTick);
+        pendingOrders.addAll(newOrders);
+        pendingOrders.sort((o1, o2) -> Long.compare(o1.getDeliveryInterval().start(), o2.getDeliveryInterval().start()));
+
+        // Load orders onto vehicles that are currently at restaurants
+        for (var entry : vehicleManager.getOccupiedRestaurants().entrySet()) {
+            var restaurant = entry.getKey();
+            var vehicle = entry.getValue();
+            if (vehicle.hasCapacity()) {
+                List<ConfirmedOrder> loadedOrders = new ArrayList<>();
+                for (int i = 0; i < pendingOrders.size(); i++) {
+                    ConfirmedOrder order = pendingOrders.get(i);
+                    if (order.getDeliveryLocation().equals(restaurant) && vehicle.canLoadOrder(order)) {
+                        loadedOrders.add(order);
+                        vehicle.loadOrder(order);
+                    }
+                }
+                pendingOrders.removeAll(loadedOrders);
+                if (!loadedOrders.isEmpty()) {
+                    vehicle.moveQueued(restaurant.getLocation(), (v, tick) -> {
+                        List<Event> vehicleEvents = new ArrayList<>();
+                        for (ConfirmedOrder order : loadedOrders) {
+                            VehicleManager.OccupiedNeighborhood neighborhood = vehicleManager.getOccupiedNeighborhood(order.getDeliveryLocation());
+                            if (neighborhood != null) {
+                                neighborhood.deliverOrder(order);
+                                vehicle.unloadOrder(order);
+                                if (vehicle.getLoadedOrders().isEmpty()) {
+                                    vehicle.moveQueued(restaurant.getLocation(), null);
+                                }
+                            } else {
+                                crash("Order cannot be delivered, destination neighborhood is not occupied!");
+                            }
+                        }
+                        return vehicleEvents;
+                    });
+                }
+            }*/
     }
 
     @Override

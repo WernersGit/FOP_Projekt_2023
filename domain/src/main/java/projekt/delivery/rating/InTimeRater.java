@@ -117,7 +117,6 @@ public class InTimeRater implements Rater {
             }
         }
 
-        //totalTicksOff += confirmedOrders.size() * maxTicksOff;
         maxTotalTicksOff = maxTicksOff * (confirmedOrders.size() + counterDelivered);
 
         if(counterDelivered == 0 & confirmedOrders.size() > 0){

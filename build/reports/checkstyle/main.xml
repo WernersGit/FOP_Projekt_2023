@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="10.3.3">
+<file name="/Users/jonaswerner/Library/CloudStorage/OneDrive-Persönlich/TU Darmstadt/Module/FOP/Projektabgabe/FOP_Projekt_2023/src/main/java/projekt/Main.java">
+<error line="11" severity="warning" message="Zeile ist 133 Zeichen lang (Obergrenze ist 130)." source="com.puppycrawl.tools.checkstyle.checks.sizes.LineLengthCheck"/>
+</file>
+</checkstyle>

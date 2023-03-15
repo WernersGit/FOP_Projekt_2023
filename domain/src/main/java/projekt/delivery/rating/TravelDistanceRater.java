@@ -1,17 +1,17 @@
 package projekt.delivery.rating;
 
+import projekt.base.Location;
 import projekt.delivery.event.ArrivedAtNodeEvent;
 import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
 import projekt.delivery.event.OrderReceivedEvent;
+import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.routing.PathCalculator;
 import projekt.delivery.routing.Region;
 import projekt.delivery.routing.VehicleManager;
 import projekt.delivery.simulation.Simulation;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,8 +30,10 @@ public class TravelDistanceRater implements Rater {
     private final Region region;
     private final PathCalculator pathCalculator;
     private final double factor;
-    private double actualDistance;
-    private double worstDistance;
+    private double actualDistance = 0;
+    private double worstDistance = 0;
+    private List<ConfirmedOrder> deliveredOrders = new ArrayList<>();
+    private List<ConfirmedOrder> recievedOrders = new ArrayList<>();
 
     private TravelDistanceRater(VehicleManager vehicleManager, double factor) {
         region = vehicleManager.getRegion();
@@ -41,33 +43,9 @@ public class TravelDistanceRater implements Rater {
 
     @Override
     public double getScore() {
-
-        if(actualDistance == 0.0){
-            return 0.0;
-        }
-        if (worstDistance == actualDistance) {
-            return 1.0;
-        }
-
-
-        //if (actualDistance == 0.0) {
-        //    return 0.0;
-        //}
-        //if (actualDistance >= worstDistance * factor) {
-        //    return 1.0;
-        //}
-        //return (worstDistance * factor - actualDistance) / (worstDistance * factor);
-
-         else {
-            double factorizedWorstDistance = worstDistance * factor;
-            if (actualDistance >= factorizedWorstDistance) {
-                return 0.0;
-            } else {
-                return 1.0 - (actualDistance / factorizedWorstDistance);
-            }
-        }
-
-
+        double returnValue = 1.0 - (actualDistance / (worstDistance * factor));
+        returnValue = returnValue > 0.9999 ? 1 : returnValue;
+        return returnValue < 0 ? 0 : returnValue;
     }
 
     @Override
@@ -75,44 +53,68 @@ public class TravelDistanceRater implements Rater {
         return RATING_CRITERIA;
     }
 
+
     @Override
     public void onTick(List<Event> events, long tick) {
-        actualDistance = 0;
+        for(Event event : events){
+            if(event instanceof DeliverOrderEvent deliveredOrder) {
 
-        for (Event event : events) {
-            if (event instanceof ArrivedAtNodeEvent) {
-                actualDistance += ((ArrivedAtNodeEvent) event).getLastEdge().getDuration() > 0 ? ((ArrivedAtNodeEvent) event).getLastEdge().getDuration() : 0;
-            }
-            else if (event instanceof DeliverOrderEvent) {
-                //((DeliverOrderEvent) event).getVehicle().getPaths().
-            }
-        }
+                boolean addValue = true;
+                for(ConfirmedOrder order: deliveredOrders){
+                    if(deliveredOrder.getOrder().getOrderID() == order.getOrderID()){
+                        addValue = false;
+                    }
+                }
 
-        List<Long> worstDistancesStream = events.stream()
-                .filter(x -> x instanceof DeliverOrderEvent)
-                .map(y -> (DeliverOrderEvent) y)
-                .filter(x -> x.getOrder() != null)
-                .map(z -> {
-                    Region.Restaurant restaurant = z.getOrder().getRestaurant().getComponent();
-                    Region.Node restaurantNode = region.getNode(restaurant.getLocation());
-                    List<Region.Node> path = pathCalculator.getPath(restaurantNode, z.getNode()).stream().toList();
-                    long distance = 0;
+                //if (addValue) {
 
-                    for (int i = 0; i < path.size(); i++) {
-                        if (i == 0) {
-                            assert restaurantNode != null;
-                            distance += Objects.requireNonNull(region.getEdge(restaurantNode, path.get(i))).getDuration();
-                        } else {
-                            distance += Objects.requireNonNull(region.getEdge(path.get(i), path.get(i - 1))).getDuration();
+                    boolean oldValue = false;
+                    for(ConfirmedOrder order: recievedOrders){
+                        if(deliveredOrder.getOrder().getOrderID() == order.getOrderID()){
+                            oldValue = true;
                         }
                     }
-                    return distance;
-                }).toList();
 
-        for (long a : worstDistancesStream) {
-            worstDistance += a;
+                    if (!oldValue) {
+                        worstDistance += getLongestDistance(deliveredOrder.getOrder().getRestaurant().getComponent().getLocation(), pathCalculator.getPath(deliveredOrder.getOrder().getRestaurant().getComponent(), deliveredOrder.getNode()));
+                    }
+
+                    deliveredOrders.add(deliveredOrder.getOrder());
+                //}
+            }
+            else if(event instanceof ArrivedAtNodeEvent onTravel){
+                actualDistance += onTravel.getLastEdge().getDuration();
+            }
+            else if(event instanceof OrderReceivedEvent orderRecieved){
+
+                boolean addValue = true;
+                for(ConfirmedOrder order: recievedOrders){
+                    if(orderRecieved.getOrder().getOrderID() == order.getOrderID()){
+                        addValue = false;
+                    }
+                }
+
+                //if(addValue){
+                    worstDistance += getLongestDistance(orderRecieved.getOrder().getRestaurant().getComponent().getLocation(), pathCalculator.getPath(orderRecieved.getOrder().getRestaurant().getComponent(), region.getNode(orderRecieved.getOrder().getLocation())));
+                    recievedOrders.add(orderRecieved.getOrder());
+                //}
+            }
         }
     }
+
+    private double getLongestDistance(Location location, Deque<Region.Node> nodes){
+        double distance = 0;
+
+        nodes.addFirst(region.getNode(location));
+        Region.Node[] tmp = nodes.toArray(new Region.Node[0]);
+
+        for(int i = 0; i < nodes.size() - 1; i++){
+            distance += region.getDistanceCalculator().calculateDistance(tmp[i].getLocation(), tmp[i+1].getLocation());
+        }
+
+        return distance * 2;
+    }
+
     public void onTickOld(List<Event> events, long tick) {
         double distanceSum = 0.0;
 
