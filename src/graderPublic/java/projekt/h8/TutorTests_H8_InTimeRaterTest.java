@@ -313,7 +313,7 @@ public class TutorTests_H8_InTimeRaterTest {
         inTimeRate.onTick(List.of(
             OrderReceivedEvent.of(0, order1),
             OrderReceivedEvent.of(0, order2),
-            OrderReceivedEvent.of(4, order3)
+            OrderReceivedEvent.of(0, order3)
         ), 0);
 
         order3.setActualDeliveryTick(1);

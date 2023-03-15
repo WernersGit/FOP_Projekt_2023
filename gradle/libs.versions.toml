@@ -12,5 +12,5 @@ mockito-inline = { module = "org.mockito:mockito-inline", version = "5.0.0" }
 
 [plugins]
 style = { id = "org.sourcegrade.style", version = "2.1.0" }
-jagr-gradle = { id = "org.sourcegrade.jagr-gradle", version = "0.8.0" }
+jagr-gradle = { id = "org.sourcegrade.jagr-gradle", version = "0.9.0" }
 javafx = { id = "org.openjfx.javafxplugin", version = "0.0.13" }

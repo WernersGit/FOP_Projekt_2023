@@ -290,8 +290,8 @@ public class TutorTests_H10_RunnerImplTest {
         });
 
         assertEquals(1, simulationActions.stream().filter(a -> a.action == SimulationActions.RUN).toList().size(), context, TR -> "The amount of calls to simulation.run is not correct when SimulationFinishedHandler.accept always returns true");
-        assertEquals(1, simulationActions.stream().filter(a -> a.action == SimulationActions.FINISHED).toList().size(), context, TR -> "The amount of calls to simulation.run is not correct when SimulationFinishedHandler.accept always returns true");
-        assertEquals(0, simulationActions.stream().filter(a -> a.action == SimulationActions.RESULT).toList().size(), context, TR -> "The amount of calls to simulation.run is not correct when SimulationFinishedHandler.accept always returns true");
+        assertEquals(1, simulationActions.stream().filter(a -> a.action == SimulationActions.FINISHED).toList().size(), context, TR -> "The amount of calls to simulationFinishedHandler.accept is not correct when SimulationFinishedHandler.accept always returns true");
+        assertEquals(0, simulationActions.stream().filter(a -> a.action == SimulationActions.RESULT).toList().size(), context, TR -> "The amount of calls to resultHandler.accept is not correct when SimulationFinishedHandler.accept always returns true");
 
     }
 

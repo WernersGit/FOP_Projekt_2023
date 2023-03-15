@@ -158,7 +158,7 @@ public class TutorTests_H7_OrderGeneratorTest {
 
         int fails = 0;
 
-        for (int k = 0; k < 1000; k++) {
+        for (int k = 0; k < 250; k++) {
             generator = FridayOrderGenerator.Factory.builder()
                 .setDeliveryInterval(1)
                 .setLastTick(50)

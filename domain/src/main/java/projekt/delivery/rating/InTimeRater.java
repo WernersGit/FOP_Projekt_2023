@@ -7,7 +7,9 @@ import projekt.delivery.generator.OrderGenerator;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.simulation.Simulation;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Rates the observed {@link Simulation} based on the punctuality of the orders.<p>
@@ -20,8 +22,10 @@ public class InTimeRater implements Rater {
 
     private final long ignoredTicksOff;
     private final long maxTicksOff;
-    private double actualTotalTicksOff;
-    private double maxTotalTicksOff;
+    private double actualTotalTicksOff = 0;
+    private double maxTotalTicksOff = 0;
+    private List<ConfirmedOrder> confirmedOrders = new ArrayList<>();
+    long counterDelivered = 0;
     /**
      * Creates a new {@link InTimeRater} instance.
      * @param ignoredTicksOff The amount of ticks this {@link InTimeRater} ignores when dealing with an {@link ConfirmedOrder} that didn't get delivered in time.
@@ -55,21 +59,22 @@ public class InTimeRater implements Rater {
         List<Event> orders = events.stream()
                 .filter(x -> x instanceof DeliverOrderEvent || x instanceof OrderReceivedEvent).toList();
 
-        maxTotalTicksOff = maxTicksOff * orders.size();
-
-        int counterRecieved = 0;
-        int counterDelivered = 0;
-
         for (Event doe : orders) {
-
-            ConfirmedOrder order;
-
             if(doe instanceof DeliverOrderEvent){ //ausgeliefert
                 counterDelivered++;
-                order = ((DeliverOrderEvent)doe).getOrder();
+                ConfirmedOrder order = ((DeliverOrderEvent)doe).getOrder();
+
+                for(ConfirmedOrder proofStatus: confirmedOrders){ //um Wert auf den des tatsächlichen Lieferzeitpunkts setzen, status in Lieferung zurücksetzen und wert subtrahieren
+                    if(proofStatus.getOrderID() == order.getOrderID()){
+                        actualTotalTicksOff -= maxTicksOff;
+                    }
+                }
+
+                confirmedOrders = confirmedOrders.stream() //Lieferung ggf in den Delivered Status übernehmen
+                        .filter(proofStatus -> proofStatus.getOrderID() != order.getOrderID())
+                        .collect(Collectors.toList());
 
                 if(order == null){
-                    //totalTicksOff += maxTicksOff; //könnte sinnvoll sein, steht aber nirgends
                     continue;
                 }
 
@@ -85,20 +90,41 @@ public class InTimeRater implements Rater {
                     long tmpTooEarly = Math.min(maxTicksOff, deliveryBegin - (actualTime + ignoredTicksOff));
                     totalTicksOff += tmpTooEarly > 0 ? tmpTooEarly : 0;
                 }
-
             }
             else{ //aufgenommen und noch nicht ausgeliefert
-                counterRecieved++;
-                totalTicksOff += maxTicksOff;
+                ConfirmedOrder order = ((OrderReceivedEvent)doe).getOrder();
+                if(order == null){
+                    continue;
+                }
+
+                boolean update = false;
+                for(ConfirmedOrder proofStatus: confirmedOrders){ //Update?
+                    if(proofStatus.getOrderID() == order.getOrderID()){
+                        update = true;
+                    }
+                }
+
+                if(update) {
+                    confirmedOrders = confirmedOrders.stream()
+                            .filter(proofStatus -> proofStatus.getOrderID() != order.getOrderID())
+                            .collect(Collectors.toList());
+                }
+                else { //nein
+                    totalTicksOff += maxTicksOff;
+                }
+
+                confirmedOrders.add(order);
             }
         }
 
+        //totalTicksOff += confirmedOrders.size() * maxTicksOff;
+        maxTotalTicksOff = maxTicksOff * (confirmedOrders.size() + counterDelivered);
 
-        if(counterDelivered == 0 & counterRecieved > 0){
+        if(counterDelivered == 0 & confirmedOrders.size() > 0){
             actualTotalTicksOff = maxTotalTicksOff;
         }
         else{
-            actualTotalTicksOff = totalTicksOff;
+            actualTotalTicksOff += totalTicksOff;
         }
     }
 

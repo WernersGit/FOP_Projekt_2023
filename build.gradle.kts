@@ -1,5 +1,3 @@
-import org.sourcegrade.jagr.gradle.task.submission.SubmissionBuildTask
-
 @Suppress("DSL_SCOPE_VIOLATION") // https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
     java
@@ -15,6 +13,17 @@ jagr {
     assignmentId.set("projekt")
     submissions {
         val main by creating {
+            from(project(":"))
+            from(project(":application"))
+            from(project(":domain"))
+            from(project(":infrastructure"))
+
+            // ACHTUNG!
+            // Kommentieren Sie die folgenden Zeilen ein und setzen Sie im folgenden Bereich Ihre
+            // TU-ID (NICHT Ihre Matrikelnummer!), Ihren Nachnamen und Ihren Vornamen
+            // in Anführungszeichen (z.B. "ab12cdef" für Ihre TU-ID) ein! Geben Sie dabei die Daten eines beliebigen
+            // Gruppenmitgliedes an.
+
             studentId.set("jw18xexo")
             firstName.set("Jonas")
             lastName.set("Werner")
@@ -50,11 +59,6 @@ application {
 }
 
 tasks {
-    withType<SubmissionBuildTask> {
-        doFirst {
-            throw GradleException("Submissions not supported yet")
-        }
-    }
     val runDir = File("build/run")
     withType<JavaExec> {
         doFirst {
