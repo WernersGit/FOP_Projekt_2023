@@ -59,14 +59,14 @@ public class TravelDistanceRater implements Rater {
         for(Event event : events){
             if(event instanceof DeliverOrderEvent deliveredOrder) {
 
-                boolean addValue = true;
+                boolean addValue = true; //keine Dopplungen
                 for(ConfirmedOrder order: deliveredOrders){
                     if(deliveredOrder.getOrder().getOrderID() == order.getOrderID()){
                         addValue = false;
                     }
                 }
 
-                //if (addValue) {
+                if (addValue) {
 
                     boolean oldValue = false;
                     for(ConfirmedOrder order: recievedOrders){
@@ -75,12 +75,17 @@ public class TravelDistanceRater implements Rater {
                         }
                     }
 
-                    if (!oldValue) {
-                        worstDistance += getLongestDistance(deliveredOrder.getOrder().getRestaurant().getComponent().getLocation(), pathCalculator.getPath(deliveredOrder.getOrder().getRestaurant().getComponent(), deliveredOrder.getNode()));
+                    double distance = getLongestDistance(deliveredOrder.getOrder().getRestaurant().getComponent().getLocation(), pathCalculator.getPath(deliveredOrder.getOrder().getRestaurant().getComponent(), deliveredOrder.getNode()));
+                    if (oldValue) {
+                        //actualDistance -= distance * factor; //wohl doch nicht analog zur 8.2, weder mit noch ohne factor
+                    }
+                    else{
+                        //worstDistance += distance;
                     }
 
+                    worstDistance += distance;
                     deliveredOrders.add(deliveredOrder.getOrder());
-                //}
+                }
             }
             else if(event instanceof ArrivedAtNodeEvent onTravel){
                 actualDistance += onTravel.getLastEdge().getDuration();
@@ -88,16 +93,18 @@ public class TravelDistanceRater implements Rater {
             else if(event instanceof OrderReceivedEvent orderRecieved){
 
                 boolean addValue = true;
-                for(ConfirmedOrder order: recievedOrders){
+                for(ConfirmedOrder order: recievedOrders){ //keine Dopplungen
                     if(orderRecieved.getOrder().getOrderID() == order.getOrderID()){
                         addValue = false;
                     }
                 }
 
-                //if(addValue){
-                    worstDistance += getLongestDistance(orderRecieved.getOrder().getRestaurant().getComponent().getLocation(), pathCalculator.getPath(orderRecieved.getOrder().getRestaurant().getComponent(), region.getNode(orderRecieved.getOrder().getLocation())));
+                if(addValue){
+                    double distance = getLongestDistance(orderRecieved.getOrder().getRestaurant().getComponent().getLocation(), pathCalculator.getPath(orderRecieved.getOrder().getRestaurant().getComponent(), region.getNode(orderRecieved.getOrder().getLocation())));
+                    //worstDistance += distance;
+                    //actualDistance += distance * factor; //wohl doch nicht analog zur 8.2, weder mit noch ohne factor
                     recievedOrders.add(orderRecieved.getOrder());
-                //}
+                }
             }
         }
     }
@@ -105,11 +112,16 @@ public class TravelDistanceRater implements Rater {
     private double getLongestDistance(Location location, Deque<Region.Node> nodes){
         double distance = 0;
 
-        nodes.addFirst(region.getNode(location));
+        if(nodes.getFirst() != region.getNode(location)){
+            nodes.addFirst(region.getNode(location));
+        }
         Region.Node[] tmp = nodes.toArray(new Region.Node[0]);
 
         for(int i = 0; i < nodes.size() - 1; i++){
-            distance += region.getDistanceCalculator().calculateDistance(tmp[i].getLocation(), tmp[i+1].getLocation());
+
+            if(region.getEdge(tmp[i], tmp[i+1]) != null){
+                distance += region.getEdge(tmp[i], tmp[i+1]).getDuration();
+            }
         }
 
         return distance * 2;
