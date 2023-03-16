@@ -54,6 +54,30 @@ public class RunnerImpl implements Runner {
         }
     }
 
+    /**
+     Map<ProblemArchetype, Simulation> simulations = createSimulations(problemGroup, simulationConfig, deliveryServiceFactory);
+
+     for (ProblemArchetype problem : problemGroup.problems()) {
+     Map<RatingCriteria, Double> ratingsSum = new EnumMap<>(RatingCriteria.class);
+     for (int runs = 0; runs < simulationRuns; runs++) {
+     Simulation simulation = simulations.get(problem);
+     simulationSetupHandler.accept(simulation, problem, runs);
+     simulation.runSimulation(simulationConfig.getMillisecondsPerTick());
+     simulationFinishedHandler.accept(simulation, problem);
+     for (RatingCriteria ratingCriteria : RatingCriteria.values()) {
+     Double ratingSum = ratingsSum.getOrDefault(ratingCriteria, 0.0);
+     ratingsSum.put(ratingCriteria, ratingSum + simulation.getRatingForCriterion(ratingCriteria));
+     }
+     }
+     Map<RatingCriteria, Double> ratingsAvg = new EnumMap<>(RatingCriteria.class);
+     for (RatingCriteria ratingCriteria : RatingCriteria.values()) {
+     double avgRating = ratingsSum.getOrDefault(ratingCriteria, 0.0) / simulationRuns;
+     ratingsAvg.put(ratingCriteria, avgRating);
+     }
+     resultHandler.accept(ratingsAvg);
+     }
+     */
+
     @Override
     public Map<ProblemArchetype, Simulation> createSimulations(ProblemGroup problemGroup,
                                                                 SimulationConfig simulationConfig,
