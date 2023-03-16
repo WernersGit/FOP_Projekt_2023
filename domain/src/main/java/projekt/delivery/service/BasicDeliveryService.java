@@ -1,12 +1,14 @@
 package projekt.delivery.service;
 
+import projekt.base.Location;
 import projekt.delivery.event.Event;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.routing.Region;
+import projekt.delivery.routing.Vehicle;
 import projekt.delivery.routing.VehicleManager;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
@@ -26,45 +28,34 @@ public class BasicDeliveryService extends AbstractDeliveryService {
 
     @Override
     protected List<Event> tick(long currentTick, List<ConfirmedOrder> newOrders) {
-        return crash(); //TODO
-
-        /**List<Event> events = vehicleManager.tick(currentTick);
+        List<Event> vehicleEvents = vehicleManager.tick(currentTick);
         pendingOrders.addAll(newOrders);
-        pendingOrders.sort((o1, o2) -> Long.compare(o1.getDeliveryInterval().start(), o2.getDeliveryInterval().start()));
+        Collections.sort(pendingOrders, Comparator.comparing(o -> o.getDeliveryInterval().start()));
 
-        // Load orders onto vehicles that are currently at restaurants
-        for (var entry : vehicleManager.getOccupiedRestaurants().entrySet()) {
-            var restaurant = entry.getKey();
-            var vehicle = entry.getValue();
-            if (vehicle.hasCapacity()) {
-                List<ConfirmedOrder> loadedOrders = new ArrayList<>();
-                for (int i = 0; i < pendingOrders.size(); i++) {
-                    ConfirmedOrder order = pendingOrders.get(i);
-                    if (order.getDeliveryLocation().equals(restaurant) && vehicle.canLoadOrder(order)) {
-                        loadedOrders.add(order);
-                        vehicle.loadOrder(order);
+        Map<Vehicle, Region.Restaurant> vehicleMap2Restaurants = new HashMap<>();
+
+        List<VehicleManager.OccupiedRestaurant> occupiedRestaurants = vehicleManager.getOccupiedRestaurants().stream().toList();
+        for(VehicleManager.OccupiedRestaurant restaurant : occupiedRestaurants){ //Restaurants durchgehen
+            for(Vehicle vehicle : restaurant.getVehicles()){ //Fahrzeuge pro Restaurant durchgehen
+                vehicleMap2Restaurants.put(vehicle, restaurant.getComponent()); //Restaurant und zugehöriges Fahrzeug speichern
+
+                List<ConfirmedOrder> tmp = new ArrayList<>();
+                for(ConfirmedOrder order : pendingOrders){ //Bestellungen Fahrzeugen zuweisen
+                    if(order.getRestaurant().getComponent().equals(restaurant.getComponent())){
+                        if(vehicle.getCapacity() >= vehicle.getCurrentWeight() + order.getWeight()){ //noch Platz?
+                            vehicle.getOrders().add(order);
+                            tmp.add(order);
+                        }
                     }
                 }
-                pendingOrders.removeAll(loadedOrders);
-                if (!loadedOrders.isEmpty()) {
-                    vehicle.moveQueued(restaurant.getLocation(), (v, tick) -> {
-                        List<Event> vehicleEvents = new ArrayList<>();
-                        for (ConfirmedOrder order : loadedOrders) {
-                            VehicleManager.OccupiedNeighborhood neighborhood = vehicleManager.getOccupiedNeighborhood(order.getDeliveryLocation());
-                            if (neighborhood != null) {
-                                neighborhood.deliverOrder(order);
-                                vehicle.unloadOrder(order);
-                                if (vehicle.getLoadedOrders().isEmpty()) {
-                                    vehicle.moveQueued(restaurant.getLocation(), null);
-                                }
-                            } else {
-                                crash("Order cannot be delivered, destination neighborhood is not occupied!");
-                            }
-                        }
-                        return vehicleEvents;
-                    });
+
+                for(ConfirmedOrder order : tmp){ //Bestellungen sicher entfernen
+                    pendingOrders.remove(order);
                 }
-            }*/
+            }
+        }
+
+        return vehicleEvents;
     }
 
     @Override
