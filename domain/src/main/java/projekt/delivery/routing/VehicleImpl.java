@@ -1,6 +1,7 @@
 package projekt.delivery.routing;
 
 import org.jetbrains.annotations.Nullable;
+import projekt.base.Location;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -165,14 +166,22 @@ class VehicleImpl implements Vehicle {
         }
     }
 
-    void loadOrder(ConfirmedOrder order) {
+    /**
+     * Lädt die angegebene Bestellung in das Fahrzeug ein
+     * @param order
+     */
+    public void loadOrder(ConfirmedOrder order) {
         double totalWeight = this.getCurrentWeight() + order.getWeight();
         if (totalWeight > this.getCapacity()) throw new VehicleOverloadedException(this, totalWeight);
 
         this.orders.add(order);
     }
 
-    void unloadOrder(ConfirmedOrder order) {
+    /**
+     * Lädt die angegebene Bestellung aus dem Fahrzeug aus
+     * @param order
+     */
+    public void unloadOrder(ConfirmedOrder order) {
         if (this.orders.contains(order)) orders.remove(order);
     }
 
