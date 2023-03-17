@@ -102,7 +102,7 @@ public class BasicDeliveryService extends AbstractDeliveryService {
                     vehicleImpl.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()));
                 };
 
-                if(confirmedOrders.size() > 0){
+                /**if(confirmedOrders.size() > 0){
 
                     for (ConfirmedOrder confirmedOrder : collectionForDelivery) {
                         confirmedOrder.setActualDeliveryTick(currentTick);
@@ -110,9 +110,13 @@ public class BasicDeliveryService extends AbstractDeliveryService {
                     vehicle.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()), setDeliveredOrderValues);
                 }
                 else{
-                    tick(currentTick + 1);
                     vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
-                }
+                }*/
+
+                vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
+                vehicleManager.tick(currentTick);
+                //vehicle.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()), setDeliveredOrderValues);
+
 
 
 
