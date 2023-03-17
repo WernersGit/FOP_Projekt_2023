@@ -24,7 +24,6 @@ public class BasicDeliveryService extends AbstractDeliveryService {
 
     // List of orders that have not yet been loaded onto delivery vehicles
     protected final List<ConfirmedOrder> pendingOrders = new ArrayList<>();
-    private Map<Long, Map<Vehicle, Collection<ConfirmedOrder>>> history = new HashMap<>();
 
     public BasicDeliveryService(
         VehicleManager vehicleManager
@@ -105,49 +104,12 @@ public class BasicDeliveryService extends AbstractDeliveryService {
 
                 if(confirmedOrders.size() > 0){
 
-                    if(history.keySet().size() > 0){
-                        long lastKey = 0;
-                        for(long key : history.keySet()){
-                            lastKey = Math.max(lastKey, key);
-                        }
-                        if(history.get(lastKey).get(vehicle) == null){
-                            for (ConfirmedOrder oldOrderCollection : collectionForDelivery) {
-                                oldOrderCollection.setActualDeliveryTick(currentTick);
-                            }
-                        }
-                        else{
-                            for (ConfirmedOrder oldOrderCollection : history.get(lastKey).get(vehicle)) {
-                                oldOrderCollection.setActualDeliveryTick(currentTick);
-                            }
-                        }
+                    for (ConfirmedOrder confirmedOrder : collectionForDelivery) {
+                        confirmedOrder.setActualDeliveryTick(currentTick);
                     }
-                    else{
-                        for (ConfirmedOrder oldOrderCollection : collectionForDelivery) {
-                            oldOrderCollection.setActualDeliveryTick(currentTick);
-                        }
-                    }
-
-
-                    Map<Vehicle, Collection<ConfirmedOrder>> tmpMap = new HashMap<>();
-                    tmpMap.put(vehicle, null);
-                    history.put(currentTick, tmpMap);
-
-
                     vehicle.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()), setDeliveredOrderValues);
                 }
                 else{
-                    if(currentTick == 0 || history.keySet().size() == 0){
-                        Map<Vehicle, Collection<ConfirmedOrder>> tmpMap = new HashMap<>();
-                        tmpMap.put(vehicle, collectionForDelivery);
-                        history.put(currentTick, tmpMap);
-                    }
-                    else{
-                        long lastKey = 0;
-                        for(long key : history.keySet()){
-                            lastKey = Math.max(lastKey, key);
-                        }
-                        history.put(currentTick, history.get(lastKey));
-                    }
                     vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
                 }
 
