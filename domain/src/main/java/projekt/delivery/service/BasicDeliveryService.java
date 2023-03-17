@@ -65,9 +65,7 @@ public class BasicDeliveryService extends AbstractDeliveryService {
                     pendingOrders.remove(order);
                 }
 
-
-
-                ConfirmedOrder firstOrder = vehicle.getOrders().stream().findFirst().get();
+                /**ConfirmedOrder firstOrder = vehicle.getOrders().stream().findFirst().get();
 
                 Collection<ConfirmedOrder> tmpCollection = null;
                 if(vehicle.getOccupied().getComponent() instanceof Region.Node node){
@@ -92,17 +90,25 @@ public class BasicDeliveryService extends AbstractDeliveryService {
 
                 BiConsumer<? super Vehicle, Long> setDeliveredOrderValues = (vehicleImpl, tickImpl) -> {
                     vehicleImpl = vehicle;
-                    tickImpl = newTick;
+                    tickImpl = newTick + 1;
 
 
                     for (ConfirmedOrder confirmedOrder : collectionForDelivery) {
                         vehicleManager.getOccupiedNeighborhood(region.getNode(confirmedOrder.getLocation())).deliverOrder(vehicle, confirmedOrder, confirmedOrder.getActualDeliveryTick());
                     }
 
-                    vehicleImpl.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()));
+                    final Vehicle finVehicle = vehicleImpl;
+                    final long finTick = tickImpl;
+
+                    BiConsumer<? super Vehicle, Long> noDelivery = (vehicleImplNo, tickImplNo) -> {
+                        vehicleImplNo = finVehicle;
+                        tickImplNo = finTick;
+                    };
+
+                    vehicleImpl.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()), noDelivery);
                 };
 
-                /**if(confirmedOrders.size() > 0){
+                if(confirmedOrders.size() > 0){
 
                     for (ConfirmedOrder confirmedOrder : collectionForDelivery) {
                         confirmedOrder.setActualDeliveryTick(currentTick);
@@ -111,10 +117,10 @@ public class BasicDeliveryService extends AbstractDeliveryService {
                 }
                 else{
                     vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
-                }*/
+                }
 
-                vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
-                vehicleManager.tick(currentTick);
+                //vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
+                //vehicleManager.tick(currentTick);
                 //vehicle.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()), setDeliveredOrderValues);
 
 
