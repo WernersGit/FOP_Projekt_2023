@@ -110,6 +110,7 @@ public class BasicDeliveryService extends AbstractDeliveryService {
                     vehicle.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()), setDeliveredOrderValues);
                 }
                 else{
+                    tick(currentTick + 1);
                     vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
                 }
 
