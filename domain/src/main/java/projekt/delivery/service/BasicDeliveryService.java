@@ -24,6 +24,7 @@ public class BasicDeliveryService extends AbstractDeliveryService {
 
     // List of orders that have not yet been loaded onto delivery vehicles
     protected final List<ConfirmedOrder> pendingOrders = new ArrayList<>();
+    private Map<Long, Map<Vehicle, Collection<ConfirmedOrder>>> history = new HashMap<>();
 
     public BasicDeliveryService(
         VehicleManager vehicleManager
@@ -38,7 +39,6 @@ public class BasicDeliveryService extends AbstractDeliveryService {
         Collections.sort(pendingOrders, Comparator.comparing(o -> o.getDeliveryInterval().start()));
 
         Map<Vehicle, Region.Restaurant> vehicleMap2Restaurants = new HashMap<>();
-        Map<Deque<Region.Node>, Vehicle> vehiclePaths = new HashMap<>();
 
         List<VehicleManager.OccupiedRestaurant> occupiedRestaurants = vehicleManager.getOccupiedRestaurants().stream().toList();
         for(VehicleManager.OccupiedRestaurant restaurant : occupiedRestaurants){ //Restaurants durchgehen
@@ -47,13 +47,17 @@ public class BasicDeliveryService extends AbstractDeliveryService {
                 vehicleMap2Restaurants.put(vehicle, restaurant.getComponent()); //Restaurant und zugehöriges Fahrzeug speichern
 
                 List<ConfirmedOrder> tmp = new ArrayList<>();
+                List<Region.Node> destinations = new ArrayList<>();
                 for(ConfirmedOrder order : pendingOrders){ //Bestellungen Fahrzeugen zuweisen
                     if(order.getRestaurant().getComponent().equals(restaurant.getComponent())){
                         if(vehicle.getCapacity() >= vehicle.getCurrentWeight() + order.getWeight()){ //noch Platz?
                             vehicle.getOrders().add(order);
                             tmp.add(order);
-                            Deque<Region.Node> path = vehicleManager.getPathCalculator().getPath(region.getNode(restaurant.getComponent().getLocation()), region.getNode(order.getLocation()));
-                            vehiclePaths.put(path, vehicle);
+
+                            Region.Node destination = region.getNode(order.getLocation());
+                            if (!destinations.contains(destination)) { //jedes Ziel nur ein Mal
+                                destinations.add(destination);
+                            }
                         }
                     }
                 }
@@ -61,33 +65,154 @@ public class BasicDeliveryService extends AbstractDeliveryService {
                 for(ConfirmedOrder order : tmp){ //Bestellungen sicher entfernen
                     pendingOrders.remove(order);
                 }
-            }
-        }
 
-        for(Vehicle vehicle : vehicleMap2Restaurants.keySet()){
 
-                BiConsumer<? super Vehicle, Long> setDeliveredOrderValues = (vehicleImpl, tickImpl) -> {
-                    vehicleImpl = vehicle;
-                    tickImpl = currentTick;
 
-                    Collection<ConfirmedOrder> tmp = new ArrayList<>();
-                    vehicleImpl.getVehicleManager().getVehicles().stream().map(y -> y.getId() == vehicleImpl.getId()).toList();
-                    tmp.addAll(vehicle.getOrders().stream().filter(x -> x.getLocation() == );
-                    Region region = vehicle.getVehicleManager().getRegion();
-                    for(ConfirmedOrder order: tmp){
-                        vehicleManager.getOccupiedNeighborhood(region.getNode(order.getLocation())).deliverOrder(vehicle, order, order.getActualDeliveryTick());
-                    }
-                };
+                ConfirmedOrder firstOrder = vehicle.getOrders().stream().findFirst().get();
 
-                List<Region.Node> alreadyMentioned = new ArrayList<>();
-                for(Deque<Region.Node> destination : vehiclePaths.keySet().stream().filter(x -> vehiclePaths.get(x) == vehicle).toList()){
-                    if(!alreadyMentioned.contains(destination.getLast())){
-                        vehicle.moveQueued(destination.getLast(), setDeliveredOrderValues);
-                        alreadyMentioned.add(destination.getLast());
+                Collection<ConfirmedOrder> tmpCollection = null;
+                if(vehicle.getOccupied().getComponent() instanceof Region.Node node){
+                    tmpCollection = vehicle.getOrders().stream().filter(x -> x.getLocation() == node.getLocation()).toList();
+                }
+                final Collection<ConfirmedOrder> confirmedOrders = tmpCollection;
+
+                Collection<ConfirmedOrder> collectionForDelivery = vehicle.getOrders().stream().filter(x -> x.getLocation() == firstOrder.getLocation()).toList();
+
+                long thisTick = currentTick;
+                if(confirmedOrders.size() > 0){
+                    for(Event event : vehicleEvents){
+                        if(event instanceof SpawnEvent spawnEvent){
+                            if(vehicle.getId() == spawnEvent.getVehicle().getId()){
+                                thisTick = spawnEvent.getTick();
+                            }
+                        }
                     }
                 }
 
+                final long newTick = thisTick;
+
+                BiConsumer<? super Vehicle, Long> setDeliveredOrderValues = (vehicleImpl, tickImpl) -> {
+                    vehicleImpl = vehicle;
+                    tickImpl = newTick;
+
+
+                    for (ConfirmedOrder confirmedOrder : collectionForDelivery) {
+                        vehicleManager.getOccupiedNeighborhood(region.getNode(confirmedOrder.getLocation())).deliverOrder(vehicle, confirmedOrder, confirmedOrder.getActualDeliveryTick());
+                    }
+
+                    vehicleImpl.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()));
+                };
+
+                if(confirmedOrders.size() > 0){
+
+                    if(history.keySet().size() > 0){
+                        long lastKey = 0;
+                        for(long key : history.keySet()){
+                            lastKey = Math.max(lastKey, key);
+                        }
+                        if(history.get(lastKey).get(vehicle) == null){
+                            for (ConfirmedOrder oldOrderCollection : collectionForDelivery) {
+                                oldOrderCollection.setActualDeliveryTick(currentTick);
+                            }
+                        }
+                        else{
+                            for (ConfirmedOrder oldOrderCollection : history.get(lastKey).get(vehicle)) {
+                                oldOrderCollection.setActualDeliveryTick(currentTick);
+                            }
+                        }
+                    }
+                    else{
+                        for (ConfirmedOrder oldOrderCollection : collectionForDelivery) {
+                            oldOrderCollection.setActualDeliveryTick(currentTick);
+                        }
+                    }
+
+
+                    Map<Vehicle, Collection<ConfirmedOrder>> tmpMap = new HashMap<>();
+                    tmpMap.put(vehicle, null);
+                    history.put(currentTick, tmpMap);
+
+
+                    vehicle.moveQueued(region.getNode(firstOrder.getRestaurant().getComponent().getLocation()), setDeliveredOrderValues);
+                }
+                else{
+                    if(currentTick == 0 || history.keySet().size() == 0){
+                        Map<Vehicle, Collection<ConfirmedOrder>> tmpMap = new HashMap<>();
+                        tmpMap.put(vehicle, collectionForDelivery);
+                        history.put(currentTick, tmpMap);
+                    }
+                    else{
+                        long lastKey = 0;
+                        for(long key : history.keySet()){
+                            lastKey = Math.max(lastKey, key);
+                        }
+                        history.put(currentTick, history.get(lastKey));
+                    }
+                    vehicle.moveQueued(region.getNode(firstOrder.getLocation()), setDeliveredOrderValues);
+                }
+
+
+
+               /** for(Region.Node destination : destinations){
+
+                    boolean attention = false;
+                    Map<Vehicle, SpawnEvent> eventMap = new HashMap<>();
+                    for(Event event : vehicleEvents){
+                        if(event instanceof SpawnEvent spawnEvent){
+                            if(vehicle.getId() == spawnEvent.getVehicle().getId()){
+                                attention = true;
+                            }
+                        }
+                    }
+
+                    if(attention){
+
+                    }
+                    else{
+
+                    }
+
+                }*/
+            }
         }
+
+
+
+        /**for(Event event : vehicleEvents){
+            if(event instanceof SpawnEvent spawnEvent) {
+                Vehicle vehicle = spawnEvent.getVehicle();
+                VehicleManager carManager = vehicle.getVehicleManager();
+                Location currentLocation = spawnEvent.getNode().getLocation();
+                Region region = vehicle.getVehicleManager().getRegion();
+                Long thisTick = spawnEvent.getTick();
+
+                List<ConfirmedOrder> arrivedOrders = vehicle.getOrders().stream().filter(x -> x.getLocation() == currentLocation).toList();
+                for(ConfirmedOrder order : arrivedOrders){
+                    carManager.getOccupiedNeighborhood(region.getNode(order.getLocation())).deliverOrder(vehicle, order, thisTick);
+                }
+
+                BiConsumer<? super Vehicle, Long> setDeliveredOrderValues = (vehicleImpl, tickImpl) -> {
+                    vehicleImpl = vehicle;
+                    tickImpl = spawnEvent.getTick();
+
+                    Collection<ConfirmedOrder> tmp = vehicle.getOrders().stream().filter(x -> x.getLocation().equals(((SpawnEvent) event).getNode().getLocation())).toList();
+                    Location goToRestaurant = null;
+                    boolean getLocation = true;
+                    for (ConfirmedOrder order : tmp) {
+                        vehicleManager.getOccupiedNeighborhood(region.getNode(order.getLocation())).deliverOrder(vehicle, order, tickImpl);
+                        if (getLocation) {
+                            goToRestaurant = order.getRestaurant().getComponent().getLocation();
+                            getLocation = false;
+                        }
+                    }
+                    if (goToRestaurant != null) {
+                        vehicleImpl.moveQueued(region.getNode(goToRestaurant));
+                    }
+                };
+
+                vehicle.moveQueued(spawnEvent.getNode(), setDeliveredOrderValues);
+            }
+        }*/
         return vehicleEvents;
     }
 
